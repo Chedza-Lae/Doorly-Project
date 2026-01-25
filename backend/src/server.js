@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 // rotas
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
+import servicosRoutes from "./routes/servicos.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,7 @@ app.use("/frontend", express.static(path.join(__dirname, "../../frontend")));
 // ---- ROTAS ----
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/servicos", servicosRoutes);
 
 // rota teste
 app.get("/", (req, res) => {
