@@ -1,7 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { db } from "../config/db.js";
+import pool from "../config/db.js";
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // inserir utilizador
-    const [result] = await db.query(
+    const [result] = await pool.query(
       "INSERT INTO utilizadores (nome, email, password_hash, tipo) VALUES (?, ?, ?, ?)",
       [nome, email, hashedPassword, finalTipo]
     );
