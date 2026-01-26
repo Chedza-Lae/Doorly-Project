@@ -36,8 +36,10 @@ router.get("/", async (req, res) => {
 /**
  * POST /api/servicos
  * Criar serviço (prestador)
- */
+
 router.post("/", verifyToken, async (req, res) => {
+  console.log("REQ.USER =", req.user);
+
   if (req.user.tipo !== "prestador" && req.user.tipo !== "admin") {
     return res.status(403).json({
       message: "Apenas prestadores podem criar serviços"
@@ -66,6 +68,42 @@ router.post("/", verifyToken, async (req, res) => {
   res.status(500).json({ message: "Erro ao criar serviço", erro: err.message });
 }
 });
+*/
+router.post("/dev", async (req, res) => {
+  const {
+    id_prestador,
+    titulo,
+    descricao,
+    categoria,
+    preco,
+    localizacao
+  } = req.body;
+
+  if (!id_prestador || !titulo || !descricao || !categoria || !preco) {
+    return res.status(400).json({
+      message: "Campos obrigatórios em falta"
+    });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO servicos
+       (id_prestador, titulo, descricao, categoria, preco, localizacao)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id_prestador, titulo, descricao, categoria, preco, localizacao]
+    );
+
+    res.status(201).json({
+      message: "Serviço criado com sucesso (modo protótipo)"
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Erro ao criar serviço",
+      erro: err.message
+    });
+  }
+});
 
 /**
  * GET /api/servicos/me
@@ -81,7 +119,7 @@ router.get("/me", verifyToken, async (req, res) => {
   try {
     const [rows] = await pool.query(
       "SELECT * FROM servicos WHERE id_prestador = ?",
-      [req.user.id]
+      [req.user.id_utilizador]
     );
 
     res.json(rows);

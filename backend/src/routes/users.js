@@ -1,6 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import { db } from "../config/db.js";
+import pool from "../config/db.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -22,7 +22,7 @@ const authMiddleware = (req, res, next) => {
 // rota protegida: perfil do utilizador
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const [rows] = await pool.query(
       "SELECT id_utilizador, nome, email, tipo, ativo, data_registo FROM utilizadores WHERE id_utilizador = ?",
       [req.userId]
     );
