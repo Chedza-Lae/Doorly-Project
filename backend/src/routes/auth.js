@@ -13,7 +13,7 @@ router.post("/register", async (req, res) => {
 
   try {
     // verificar se já existe utilizador com esse email
-    const [exists] = await db.query(
+    const [exists] = await pool.query(
       "SELECT * FROM utilizadores WHERE email = ?",
       [email]
     );
@@ -61,7 +61,7 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const [rows] = await db.query(
+    const [rows] = await pool.query(
       "SELECT * FROM utilizadores WHERE email = ?",
       [email]
     );
@@ -80,7 +80,10 @@ router.post("/login", async (req, res) => {
 
     // gerar JWT
     const token = jwt.sign(
-      { id: user.id_utilizador, tipo: user.tipo },
+      { id: user.id_utilizador, 
+        tipo: user.tipo,
+        email: user.email
+      },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
