@@ -130,6 +130,25 @@ router.get("/me", verifyToken, async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await pool.query(
+      `SELECT s.*, u.nome AS prestador
+       FROM servicos s
+       JOIN utilizadores u ON s.id_prestador = u.id_utilizador
+       WHERE s.id_servico = ?`,
+      [id]
+    );
+
+    if (!rows.length) return res.status(404).json({ message: "Serviço não encontrado" });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: "Erro ao obter serviço" });
+  }
+});
+
+
 export default router;
 
 
