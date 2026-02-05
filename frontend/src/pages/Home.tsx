@@ -107,16 +107,16 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#F3F4F6]">
       <Navbar />
 
-      {/* HERO — menos “IA”, mais direto e com cara de produto */}
+      {/* HERO — mais direto e com cara de produto */}
       <section className="bg-gradient-to-br from-[#0B1B46] via-[#1E3A8A] to-[#3B82F6] text-white py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 md:grid-cols-2 items-center">
             <div>
               <p className="inline-flex items-center gap-2 text-blue-100/90 bg-white/10 px-3 py-1 rounded-full text-sm">
-                ✔️ Prestadores verificados • 📍 Perto de ti • 💬 Contacto rápido
+                Prestadores verificados • Perto de ti • Contacto rápido
               </p>
 
-              <h1 className="text-4xl md:text-5xl leading-tight mt-5">
+              <h1 className="text-4xl md:text-5xl lg:text-5xl max-w-xl leading-tight mt-5 font-semibold tracking-tight">
                 Encontra serviços <span className="text-blue-200">sem dor de cabeça</span>.
               </h1>
 
@@ -146,9 +146,13 @@ export default function HomePage() {
               </div>
 
               {/* status bar */}
-              <div className="mt-3 text-sm text-blue-100/80">
-                {loading ? "A carregar serviços…" : error ? `Erro: ${error}` : `${services.length} serviços disponíveis`}
-              </div>
+              <div className="mt-3 inline-flex items-center gap-2 text-sm px-3 py-1 rounded-full bg-white/10 border border-white/20 text-blue-100/90">
+                  {loading
+                    ? "A carregar serviços…"
+                    : error
+                    ? "Servidor indisponível (backend offline ou CORS)."
+                    : `${services.length} serviços disponíveis`}
+                </div>
             </div>
 
             {/* bloco visual simples (com cara de marca) */}
