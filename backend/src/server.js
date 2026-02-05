@@ -15,7 +15,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 app.use(express.json());
 
 // ---- SERVIR FRONTEND ----
