@@ -46,11 +46,16 @@ Copiar código
 - Node.js (versão LTS recomendada)
 - Git
 - XAMPP (Apache + MySQL) com a base de dados criada
+- Base de dados criada
+
+Confirmar versão do Node:
+``bash
+node -v
 
 ---
 
 ### Clonar o Repositório
-```bash
+``bash
 git clone https://github.com/Chedza-Lae/Doorly-Project.git
 cd Doorly-Project
 
@@ -75,3 +80,66 @@ npm run dev
 O frontend corre por defeito em:
 
 http://localhost:5173
+
+Se o Frontend abrir página branca
+
+- Abrir o navegador
+- Premir F12
+- Ir à aba "Console"
+
+Se existir erro, verificar:
+
+Node instalado corretamente
+npm install executado dentro da pasta frontend
+Porta do backend correta (3001)
+Proxy configurado no vite.config.ts
+
+Exemplo de proxy correto:
+
+export default {
+  server: {
+    proxy: {
+      "/api": "http://localhost:3001",
+    },
+  },
+};
+Variáveis de Ambiente
+
+Criar ficheiro:
+
+backend/.env
+
+Conteúdo:
+PORT=3001
+JWT_SECRET=chave_exemplo
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=doorly
+
+Endpoint de Teste
+Se necessário, testar comunicação:
+
+http://localhost:3001/api/health
+
+Deverá retornar JSON.
+
+Problemas Comuns
+"Failed to fetch"
+
+- Backend desligado
+- Porta incorreta
+- CORS não configurado
+- Proxy não configurado
+
+Página branca
+
+- Dependências não instaladas
+- Erro no console
+- Variáveis de ambiente ausentes
+- Backend não acessível
+
+Estado do Projeto
+
+Protótipo funcional com integração frontend/backend em desenvolvimento.
+Projeto em fase de otimização e testes finais.
