@@ -5,22 +5,8 @@ import ServiceCard from "../components/ServiceCard";
 import { Search, Wrench, Home, Zap, Leaf, Paintbrush, Hammer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-type ApiService = {
-  id_servico: number;
-  id_prestador: number;
-  titulo: string;
-  descricao: string;
-  categoria: string;
-  preco: string | number;
-  localizacao?: string | null;
-  data_publicacao: string;
-  ativo: 0 | 1;
-  prestador?: string;        // vem do JOIN (u.nome AS prestador)
-  imagem_url?: string | null; // se adicionares a coluna
-};
-
-const API_BASE = "http://localhost:3001";
+import { api } from "../lib/api";
+import type { ApiService as ApiServiceDTO } from "../lib/api";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1527515545081-5db817172677?auto=format&fit=crop&w=1200&q=80";
@@ -33,31 +19,25 @@ function euro(value: string | number) {
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [services, setServices] = useState<ApiService[]>([]);
+  const [services, setServices] = useState<ApiServiceDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // busca serviços (home + pesquisa)
   async function fetchServices(q?: string) {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const url = new URL(`${API_BASE}/api/servicos`);
-      if (q && q.trim()) url.searchParams.set("q", q.trim());
-
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error(`API erro: ${res.status}`);
-      const data = (await res.json()) as ApiService[];
-      setServices(data ?? []);
-    } catch (e: any) {
-      setError(e?.message ?? "Erro ao carregar serviços");
-      setServices([]);
-    } finally {
-      setLoading(false);
-    }
+  setLoading(true);
+  setError(null);
+  try {
+    const data = await api.listServices(q);
+    setServices(data);
+  } catch (e: any) {
+    setError(e?.message ?? "Erro ao carregar serviços");
+    setServices([]);
+  } finally {
+    setLoading(false);
   }
+}
 
   useEffect(() => {
     fetchServices();
@@ -225,7 +205,7 @@ export default function HomePage() {
           <div className="bg-white rounded-2xl p-8 text-gray-600">A carregar…</div>
         ) : error ? (
           <div className="bg-white rounded-2xl p-8 text-red-600">
-            Não foi possível carregar serviços. Confere se o backend está a correr em {API_BASE}.
+            Não foi possível carregar serviços. Confere se o backend está a correr.
           </div>
         ) : featured.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-gray-700">

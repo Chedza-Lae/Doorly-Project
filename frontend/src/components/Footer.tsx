@@ -30,8 +30,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-3">
-              <img src="/doorly.png" alt="Doorly" className="h-9 w-auto object-contain" />
-              <span className="text-lg font-semibold text-gray-900">Doorly</span>
+              <img src="/doorly.png" alt="Doorly" className="h-16 w-auto object-contain" />
             </div>
 
             <p className="text-gray-600 text-sm mt-4 leading-relaxed">
