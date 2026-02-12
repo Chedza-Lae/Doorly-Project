@@ -2,7 +2,7 @@
 
 :root {
   --font-size: 16px;
-  --background: #f6f7fb; /* 👈 fundo mais “produto” */
+  --background: #f6f7fb; 
   --foreground: oklch(0.145 0 0);
 
   --card: #ffffff;
@@ -17,8 +17,8 @@
   --secondary: oklch(0.95 0.0058 264.53);
   --secondary-foreground: #030213;
 
-  --muted: #eef0f6;               /* 👈 mais suave */
-  --muted-foreground: #556074;    /* 👈 melhor leitura */
+  --muted: #eef0f6; 
+  --muted-foreground: #556074;
 
   --accent: #e9ebef;
   --accent-foreground: #030213;

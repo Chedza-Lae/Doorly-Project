@@ -37,7 +37,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
-            <img src="/doorly.png" alt="Doorly" style={{ height: 48 }} />
+            <img src="/doorly.png" alt="Doorly" style={{ height: 80 }} />
           </Link>
 
           {/* Desktop Navigation */}
