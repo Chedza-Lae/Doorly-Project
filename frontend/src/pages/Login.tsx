@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
 import { useState } from "react";
-import { api, setToken } from "../lib/api";
+import { api, setToken, setUser } from "../lib/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,7 +18,8 @@ export default function Login() {
     try {
       const data = await api.login(email, password);
       setToken(data.token);
-      navigate("/"); // ou "/services"
+      setUser(data.user); 
+      navigate("/services"); 
     } catch (e: any) {
       setErr(e?.message || "Falha no login");
     } finally {

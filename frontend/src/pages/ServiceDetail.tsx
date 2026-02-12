@@ -6,11 +6,14 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { ApiService } from "../lib/api";
 import { euro } from "../lib/money";
+import { useNavigate } from "react-router-dom";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1527515545081-5db817172677?auto=format&fit=crop&w=1600&q=80";
 
 export default function ServiceDetail() {
+  const navigate = useNavigate();
+
   const { id } = useParams();
   const [isFavorite, setIsFavorite] = useState(false);
 
@@ -98,7 +101,7 @@ export default function ServiceDetail() {
         {/* Top image */}
         <div className="relative h-80 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-sm">
           <img src={image} alt={service.titulo} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/35 via-black/10 to-transparent" />
 
           <button
             onClick={() => setIsFavorite(!isFavorite)}
@@ -152,7 +155,7 @@ export default function ServiceDetail() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {includes.map((item) => (
                   <div key={item} className="flex items-start gap-2">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5">
                       <div className="w-2 h-2 rounded-full bg-green-600" />
                     </div>
                     <span className="text-gray-700">{item}</span>
@@ -204,7 +207,7 @@ export default function ServiceDetail() {
 
               <div className="space-y-3 py-6 border-y border-gray-200">
                 <div className="flex items-center gap-3 text-gray-700">
-                  <Clock className="w-5 h-5 flex-shrink-0" />
+                  <Clock className="w-5 h-5 shrink-0" />
                   <div>
                     <p className="text-sm text-gray-500">Disponibilidade</p>
                     <p className="text-sm text-gray-900">A combinar com o prestador</p>
@@ -216,10 +219,9 @@ export default function ServiceDetail() {
                 <button className="w-full bg-[#0B1B46] text-white py-3 rounded-xl hover:bg-[#1E3A8A] transition-colors shadow-sm">
                   Pedir orçamento
                 </button>
-
-                {/* ações “reais” sem inventar */}
+                
                 <button
-                  onClick={() => alert("Protótipo: aqui vai abrir chat/mensagens.")}
+                  onClick={() => navigate(`/messages/new?service_id=${service.id_servico}`)}
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-800 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   <Mail className="w-5 h-5" />
