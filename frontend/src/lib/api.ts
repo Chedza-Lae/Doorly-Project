@@ -17,6 +17,41 @@ export type ApiService = {
   imagem_url?: string | null;
 };
 
+export type InboxItem = {
+  id: number;
+  id_servico: number;
+  id_remetente: number;
+  id_destinatario: number;
+  conteudo: string;
+  data_envio: string;
+  titulo_servico: string;
+  nome_remetente: string;
+};
+
+export type ThreadMsg = {
+  id: number;
+  id_servico: number;
+  id_remetente: number;
+  id_destinatario: number;
+  conteudo: string;
+  data_envio: string;
+  nome_remetente: string;
+};
+
+export type AdminUserRow = {
+  id: number;
+  nome: string;
+  email: string;
+  tipo: "cliente" | "prestador" | "admin" | string;
+};
+
+export type AdminServiceRow = {
+  id: number;
+  titulo: string;
+  id_prestador: number;
+  nome_prestador: string;
+};
+
 function getToken() {
   return localStorage.getItem("doorly_token");
 }
@@ -27,6 +62,7 @@ export function setToken(token: string) {
 
 export function clearToken() {
   localStorage.removeItem("doorly_token");
+  localStorage.removeItem("doorly_user");
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -40,9 +76,29 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    throw new Error(data?.message || data?.error || `Erro ${res.status}`);
+    throw new Error(data?.message || data?.msg || data?.error || `Erro ${res.status}`);
   }
   return data as T;
+}
+
+export type StoredUser = { id?: number; id_utilizador?: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" };
+
+export function setUser(user: StoredUser) {
+  localStorage.setItem("doorly_user", JSON.stringify(user));
+}
+
+export function getUser(): StoredUser | null {
+  const raw = localStorage.getItem("doorly_user");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function clearUser() {
+  localStorage.removeItem("doorly_user");
 }
 
 export const api = {
@@ -62,6 +118,34 @@ export const api = {
     return request<ApiService[]>(`/api/servicos${qs}`);
   },
 
-  // se NÃO tiveres este endpoint no backend, eu já te digo como fazer já abaixo
   getService: (id: number) => request<ApiService>(`/api/servicos/${id}`),
+
+  // messages
+  sendMessage: (service_id: number, content: string) =>
+    request<{ message: string }>("/api/messages", {
+      method: "POST",
+      body: JSON.stringify({ service_id, content }),
+    }),
+
+  inbox: () => request<InboxItem[]>("/api/messages/inbox"),
+
+  thread: (service_id: number, other_id: number) =>
+    request<ThreadMsg[]>(`/api/messages/thread?service_id=${service_id}&other_id=${other_id}`),
+
+  reply: (service_id: number, other_id: number, content: string) =>
+    request<{ message: string }>("/api/messages/reply", {
+      method: "POST",
+      body: JSON.stringify({ service_id, other_id, content }),
+    }),
+
+  // admin
+  adminUsers: () => request<AdminUserRow[]>("/api/admin/users"),
+
+  adminDeleteUser: (id: number) =>
+    request<{ message: string }>(`/api/admin/users/${id}`, { method: "DELETE" }),
+
+  adminServices: () => request<AdminServiceRow[]>("/api/admin/services"),
+
+  adminDeleteService: (id: number) =>
+    request<{ message: string }>(`/api/admin/services/${id}`, { method: "DELETE" }),
 };

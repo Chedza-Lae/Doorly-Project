@@ -93,7 +93,6 @@ export default function Services() {
     setMinRating("all");
   };
 
-  // transformar ApiService → props do ServiceCard
   const cards = filtered.map((s) => ({
     id: String(s.id_servico),
     image: s.imagem_url || FALLBACK_IMAGE,
@@ -112,12 +111,11 @@ export default function Services() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl text-gray-900 mb-2">Serviços</h1>
-          <p className="text-gray-600">Pesquisa serviços reais publicados na Doorly.</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters */}
-          <div className="lg:w-72 flex-shrink-0">
+          <div className="lg:w-72 shrink-0">
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl text-gray-900">Filtros</h2>

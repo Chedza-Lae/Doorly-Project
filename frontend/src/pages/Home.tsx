@@ -4,6 +4,7 @@ import CategoryCard from "../components/CategoryCard";
 import ServiceCard from "../components/ServiceCard";
 import { Search, Wrench, Home, Zap, Leaf, Paintbrush, Hammer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type ApiService = {
   id_servico: number;
@@ -35,6 +36,7 @@ export default function HomePage() {
   const [services, setServices] = useState<ApiService[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // busca serviços (home + pesquisa)
   async function fetchServices(q?: string) {
@@ -99,16 +101,18 @@ export default function HomePage() {
     provider: s.prestador || "Prestador",
   }));
 
-  const onSearch = async () => {
-    await fetchServices(searchQuery);
-  };
+  const onSearch = () => {
+  const q = searchQuery.trim();
+  if (!q) return;
+  navigate(`/services?q=${encodeURIComponent(q)}`);
+};
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
       <Navbar />
 
       {/* HERO — mais direto e com cara de produto */}
-      <section className="bg-gradient-to-br from-[#0B1B46] via-[#1E3A8A] to-[#3B82F6] text-white py-16 md:py-20">
+      <section className="bg-linear-to-br from-[#0B1B46] via-[#1E3A8A] to-[#3B82F6] text-white py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 md:grid-cols-2 items-center">
             <div>
@@ -164,9 +168,9 @@ export default function HomePage() {
                     <button
                       key={t}
                       onClick={() => {
-                        setSearchQuery(t);
-                        fetchServices(t);
-                      }}
+                      setSearchQuery(t);
+                      navigate(`/services?q=${encodeURIComponent(t)}`);
+                    }}
                       className="text-left bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl p-4 transition"
                     >
                       <div className="font-semibold">{t}</div>
@@ -239,7 +243,7 @@ export default function HomePage() {
       {/* CTA Section */}
       <section className="bg-white py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-r from-[#0B1B46] to-[#1E3A8A] rounded-3xl p-10 md:p-12 text-center text-white">
+          <div className="bg-linear-to-r from-[#0B1B46] to-[#1E3A8A] rounded-3xl p-10 md:p-12 text-center text-white">
             <h2 className="text-3xl mb-3">És prestador de serviços?</h2>
             <p className="text-lg mb-7 text-blue-100/90">
               Publica os teus serviços e começa a receber pedidos.
