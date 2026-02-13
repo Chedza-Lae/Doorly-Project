@@ -4,8 +4,8 @@ import Services from "./pages/Services";
 import ServiceDetail from "./pages/ServiceDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Message from "./pages/message";
-import Inbox from "./pages/inbox";
+import Message from "./pages/Message";
+import Inbox from "./pages/Inbox";
 import Thread from "./pages/Thread";
 import Admin from "./pages/Admin";
 
