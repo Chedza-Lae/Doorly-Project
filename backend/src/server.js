@@ -4,6 +4,7 @@ import "dotenv/config";
 import path from "path";
 import { fileURLToPath } from "url";
 
+
 // rotas
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
@@ -23,10 +24,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// ---- SERVIR FRONTEND ----
-// agora podes abrir qualquer HTML via http://localhost:3001/frontend/ficheiro.html
-app.use("/frontend", express.static(path.join(__dirname, "../../frontend")));
-
 // ---- ROTAS ----
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -34,11 +31,17 @@ app.use("/api/servicos", servicosRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/admin", adminRoutes);
 
-// rota teste
-app.get("/", (req, res) => {
-  res.send("Backend Doorly a correr! 🚀");
+// health check
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, message: "Backend Doorly a correr! 🚀" });
 });
 
-app.listen(3001, () => {
-  console.log("🚀 Backend a correr em http://localhost:3001");
+// servir frontend buildado
+app.use(express.static(path.join(__dirname, "../../frontend/dist")));
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/dist/index.html"));
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Backend a correr em http://0.0.0.0:${PORT}`);
 });

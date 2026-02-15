@@ -21,7 +21,6 @@ export default function ServiceCard({
   rating,
   reviews,
   location,
-  provider,
 }: ServiceCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
 
