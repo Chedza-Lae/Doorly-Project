@@ -66,6 +66,7 @@ Copiar código
 - cd backend
 - npm install
 - npm run dev
+
 O backend corre por defeito em:
 
 http://localhost:3001
@@ -78,6 +79,7 @@ Copiar código
 - cd frontend
 - npm install
 - npm run dev
+
 O frontend corre por defeito em:
 
 http://localhost:5173
