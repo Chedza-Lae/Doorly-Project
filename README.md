@@ -59,24 +59,25 @@ node -v
 git clone https://github.com/Chedza-Lae/Doorly-Project.git
 cd Doorly-Project
 
-Executar o Backend
-bash
+### Executar o Backend
+- bash
+  
 Copiar código
-cd backend
-npm install
-npm run dev
+- cd backend
+- npm install
+- npm run dev
 O backend corre por defeito em:
 
 http://localhost:3001
 
-Executar o Frontend
+### Executar o Frontend
 Abrir um novo terminal:
 
-bash
+- bash
 Copiar código
-cd frontend
-npm install
-npm run dev
+- cd frontend
+- npm install
+- npm run dev
 O frontend corre por defeito em:
 
 http://localhost:5173
@@ -89,12 +90,12 @@ Se o Frontend abrir página branca
 
 Se existir erro, verificar:
 
-Node instalado corretamente
-npm install executado dentro da pasta frontend
-Porta do backend correta (3001)
-Proxy configurado no vite.config.ts
+- Node instalado corretamente
+- npm install executado dentro da pasta frontend
+- Porta do backend correta (3001)
+- Proxy configurado no vite.config.ts
 
-Exemplo de proxy correto:
+### Exemplo de proxy correto:
 
 export default {
   server: {
@@ -105,7 +106,7 @@ export default {
 };
 Variáveis de Ambiente
 
-Criar ficheiro:
+### Criar ficheiro:
 
 backend/.env
 
@@ -117,7 +118,7 @@ DB_USER=root
 DB_PASSWORD=
 DB_NAME=doorly
 
-Endpoint de Teste
+### Endpoint de Teste
 Se necessário, testar comunicação:
 
 http://localhost:3001/api/health
