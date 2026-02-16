@@ -1,148 +1,161 @@
 # Doorly — Portal Web de Serviços (PAP)
 
-Plataforma web desenvolvida no âmbito da Prova de Aptidão Profissional (PAP), com o objetivo de permitir a divulgação e gestão de serviços por parte de empresas/prestadores, bem como a consulta desses serviços por utilizadores.
+Plataforma web desenvolvida no âmbito da Prova de Aptidão Profissional (PAP).
+Permite a divulgação, consulta e gestão de serviços, com autenticação baseada em JWT.
 
----
+## Tecnologias
 
-## Tecnologias Utilizadas
-
-### Frontend
-- React + Vite
+#### Frontend
+- React
+- Vite
 - TypeScript
 - Tailwind CSS
-- lucide-react
 
-### Backend
+#### Backend
+
 - Node.js
 - Express
-- JWT (autenticação)
-- Base de Dados MySQL (phpMyAdmin / XAMPP)
+- JWT
 
----
+#### Base de Dados
 
-## Funcionalidades (estado atual)
-- Interface web moderna e responsiva
-- Listagem de serviços
-- Página de detalhe de serviço
-- Estrutura preparada para autenticação (login/registro)
-- Comunicação frontend ↔ backend em desenvolvimento
-
-> Nota: O projeto encontra-se em fase de protótipo funcional, podendo existir funcionalidades em fase de correção ou melhoria.
-
----
+- MySQL (XAMPP / phpMyAdmin)
 
 ## Estrutura do Projeto
-/frontend → Aplicação React (Vite)
-/backend → API Node.js + Express
+/frontend   → Aplicação React (Vite)
+/backend    → API Node.js + Express
 
-yaml
-Copiar código
+MÉTODO RECOMENDADO PARA AVALIAÇÃO
 
----
+(Produção — Frontend servido pelo Backend)
 
-## Como Executar o Projeto Localmente
+Este método evita erros de proxy, conflitos de porta e “tela branca”.
 
-### Pré-requisitos
+## Pré-requisitos
+
 - Node.js (versão LTS recomendada)
+- XAMPP (Apache + MySQL)
 - Git
-- XAMPP (Apache + MySQL) com a base de dados criada
-- Base de dados criada
 
-Confirmar versão do Node:
-``bash
-node -v
+### Confirmar Node:
 
----
+- node -v
 
-### Clonar o Repositório
-``bash
-git clone https://github.com/Chedza-Lae/Doorly-Project.git
-cd Doorly-Project
+### Configurar Base de Dados
 
-### Executar o Backend
-- bash
-  
-Copiar código
-- cd backend
-- npm install
-- npm run dev
+No XAMPP:
 
-O backend corre por defeito em:
+- Iniciar Apache
+- Iniciar MySQL
+- Abrir phpMyAdmin
 
-http://localhost:3001
+- Criar base de dados:
 
-### Executar o Frontend
-Abrir um novo terminal:
+doorly
 
-- bash
-Copiar código
-- cd frontend
-- npm install
-- npm run dev
+- Importar o ficheiro .sql do projeto (se fornecido)
 
-O frontend corre por defeito em:
+### Configurar Variáveis de Ambiente (Backend)
 
-http://localhost:5173
-
-Se o Frontend abrir página branca
-
-- Abrir o navegador
-- Premir F12
-- Ir à aba "Console"
-
-Se existir erro, verificar:
-
-- Node instalado corretamente
-- npm install executado dentro da pasta frontend
-- Porta do backend correta (3001)
-- Proxy configurado no vite.config.ts
-
-### Exemplo de proxy correto:
-
-export default {
-  server: {
-    proxy: {
-      "/api": "http://localhost:3001",
-    },
-  },
-};
-Variáveis de Ambiente
-
-### Criar ficheiro:
+- Criar ficheiro:
 
 backend/.env
 
-Conteúdo:
+- Conteúdo:
+
 PORT=3001
-JWT_SECRET=chave_exemplo
+JWT_SECRET=chave_exemplo_segura
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=doorly
 
-### Endpoint de Teste
-Se necessário, testar comunicação:
+### Build do Frontend
+
+Como a pasta dist não está no repositório, é necessário gerar o build.
+
+Abrir terminal:
+
+- cd frontend
+- npm install
+- npm run build
+
+Após executar, deverá existir:
+
+frontend/dist/index.html
+
+Este passo é essencial para evitar página branca.
+
+### Executar Backend (Serve Frontend + API)
+
+Abrir novo terminal:
+
+- cd backend
+- npm install
+- npm run dev
+
+O sistema ficará disponível em:
+
+http://localhost:3001
+
+Abrir apenas este link.
+NÃO executar npm run dev no frontend neste modo.
+
+### Teste de Funcionamento
+
+Para confirmar backend ativo:
 
 http://localhost:3001/api/health
 
 Deverá retornar JSON.
 
+Se esta rota funcionar, o sistema está corretamente configurado.
+
+### Se aparecer página branca
+
+Verificar:
+- O comando npm run build foi executado dentro da pasta frontend
+- A pasta frontend/dist existe
+- O backend está a correr
+- Abrir F12 → Console e verificar erros
+- Confirmar que a base de dados está ligada
+
+Método Alternativo (Desenvolvimento)
+
+Apenas se necessário.
+
+Backend
+cd backend
+npm install
+npm run dev
+
+Corre em:
+
+http://localhost:3001
+Frontend
+cd frontend
+npm install
+npm run dev
+
+Corre em:
+
+http://localhost:5173
+
+Neste modo é necessário proxy configurado no vite.config.ts.
+
 Problemas Comuns
 "Failed to fetch"
 
 - Backend desligado
+- Base de dados desligada
 - Porta incorreta
 - CORS não configurado
-- Proxy não configurado
+- Login não funciona
+- Base de dados não importada corretamente
+- Variáveis de ambiente incorretas
+- Password não corresponde ao hash
 
-Página branca
-
-- Dependências não instaladas
-- Erro no console
-- Variáveis de ambiente ausentes
-- Backend não acessível
-
-Estado do Projeto
+## Estado do Projeto
 
 Protótipo funcional com integração frontend/backend em desenvolvimento.
 Projeto em fase de otimização e testes finais.
