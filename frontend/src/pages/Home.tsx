@@ -55,10 +55,14 @@ export default function HomePage() {
   // contagens reais com base no que vem da BD
   const categoryCounts = useMemo(() => {
     const map = new Map<string, number>();
+
+    if (!Array.isArray(services)) return map;
+
     services.forEach((s) => {
       const k = (s.categoria || "").trim();
       map.set(k, (map.get(k) ?? 0) + 1);
     });
+
     return map;
   }, [services]);
 
@@ -70,16 +74,18 @@ export default function HomePage() {
   }));
 
   // “Destaque” do protótipo: pega nos primeiros 6
-  const featured = services.slice(0, 6).map((s) => ({
-    id: String(s.id_servico),
-    image: s.imagem_url || FALLBACK_IMAGE,
-    title: s.titulo,
-    price: `${euro(s.preco)}`,
-    rating: 4.8, // protótipo (depois ligas às avaliações)
-    reviews: 0,  // protótipo
-    location: s.localizacao || "Portugal",
-    provider: s.prestador || "Prestador",
-  }));
+  const featured = Array.isArray(services)
+    ? services.slice(0, 6).map((s) => ({
+        id: String(s.id_servico),
+        image: s.imagem_url || FALLBACK_IMAGE,
+        title: s.titulo,
+        price: `${euro(s.preco)}`,
+        rating: 4.8,
+        reviews: 0,
+        location: s.localizacao || "Portugal",
+        provider: s.prestador || "Prestador",
+      }))
+    : [];
 
   const onSearch = () => {
   const q = searchQuery.trim();
