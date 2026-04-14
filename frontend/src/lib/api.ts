@@ -113,9 +113,16 @@ export const api = {
     }),
 
   // services
-  listServices: (q?: string) => {
+  listServices: async (q?: string): Promise<ApiService[]> => {
     const qs = q?.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
-    return request<ApiService[]>(`/api/servicos${qs}`);
+    const res = await request<any>(`/api/servicos${qs}`);
+
+    // adapta automaticamente
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res.data)) return res.data;
+    if (Array.isArray(res.services)) return res.services;
+
+    return [];
   },
 
   getService: (id: number) => request<ApiService>(`/api/servicos/${id}`),
