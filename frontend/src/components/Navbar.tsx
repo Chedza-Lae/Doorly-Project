@@ -23,6 +23,8 @@ export default function Navbar() {
 
   const isLogged = !!user;
   const isAdmin = user?.tipo === "admin";
+  const isCliente = user?.tipo === "cliente";
+  const isPrestador = user?.tipo === "prestador";
 
   function logout() {
   clearToken();
@@ -50,15 +52,21 @@ export default function Navbar() {
               About
             </Link>
 
-            <Link to="/favorites" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
-              <Heart className="w-5 h-5" />
-            </Link>
+            {/* Favoritos → só cliente */}
+            {isCliente && (
+              <Link to="/favorites" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
+                <Heart className="w-5 h-5" />
+              </Link>
+            )}
 
-            <Link to="/dashboard" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
-              <LayoutDashboard className="w-5 h-5" />
-            </Link>
+            {/* Dashboard → só prestador */}
+            {isPrestador && (
+              <Link to="/dashboard" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
+                <LayoutDashboard className="w-5 h-5" />
+              </Link>
+            )}
 
-            {/* ✅ Mensagens só se logado */}
+            {/* Mensagens só se logado */}
             {isLogged && (
               <Link
                 to="/messages/inbox"

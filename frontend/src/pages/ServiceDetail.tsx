@@ -7,13 +7,14 @@ import { api } from "../lib/api";
 import type { ApiService } from "../lib/api";
 import { euro } from "../lib/money";
 import { useNavigate } from "react-router-dom";
+import { addFavorite, removeFavorite, getFavorites, getUser } from "../lib/api";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1527515545081-5db817172677?auto=format&fit=crop&w=1600&q=80";
 
 export default function ServiceDetail() {
   const navigate = useNavigate();
-
+  const user = getUser();
   const { id } = useParams();
   const [isFavorite, setIsFavorite] = useState(false);
 
@@ -30,6 +31,12 @@ export default function ServiceDetail() {
       try {
         const data = await api.getService(Number(id));
         setService(data);
+
+        if (user) {
+        const favs = await getFavorites(user.id_utilizador);
+        const exists = favs.some((f: any) => f.id_servico === Number(id));
+        setIsFavorite(exists);
+      }
       } catch (e: any) {
         setErr(e?.message || "Erro ao carregar serviço");
       } finally {
@@ -37,6 +44,23 @@ export default function ServiceDetail() {
       }
     })();
   }, [id]);
+
+    async function toggleFavorite() {
+      if (!user || !service) return;
+
+      const userId = user.id_utilizador;
+      const serviceId = service.id_servico;
+
+      if (!userId || !serviceId) return;
+
+      if (isFavorite) {
+        await removeFavorite(userId, serviceId);
+      } else {
+        await addFavorite(userId, serviceId);
+      }
+
+      setIsFavorite(!isFavorite);
+    }
 
   // protótipo: rating/reviews “fixos” mas com aspeto real
   const rating = useMemo(() => 4.8, []);
@@ -104,11 +128,16 @@ export default function ServiceDetail() {
           <div className="absolute inset-0 bg-linear-to-t from-black/35 via-black/10 to-transparent" />
 
           <button
-            onClick={() => setIsFavorite(!isFavorite)}
+            onClick={toggleFavorite}
             className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-lg hover:scale-110 transition-transform"
-            aria-label="Favorito"
           >
-            <Heart className={`w-6 h-6 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-700"}`} />
+            <Heart
+              className={`w-6 h-6 ${
+                isFavorite
+                  ? "fill-red-500 text-red-500"
+                  : "text-gray-700"
+              }`}
+            />
           </button>
 
           <div className="absolute bottom-4 left-4 right-4">
