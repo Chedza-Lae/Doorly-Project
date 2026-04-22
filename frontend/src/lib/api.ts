@@ -81,7 +81,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
-export type StoredUser = { id?: number; id_utilizador?: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" };
+export type StoredUser = { id: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" };
 
 export function setUser(user: StoredUser) {
   localStorage.setItem("doorly_user", JSON.stringify(user));
@@ -156,3 +156,30 @@ export const api = {
   adminDeleteService: (id: number) =>
     request<{ message: string }>(`/api/admin/services/${id}`, { method: "DELETE" }),
 };
+
+export async function getFavorites(userId: number) {
+  const res = await fetch(`${API_BASE}/favorites/${userId}`);
+  return res.json();
+}
+
+export async function addFavorite(userId: number, serviceId: number) {
+  return fetch(`${API_BASE}/favorites`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id_cliente: userId,
+      id_servico: serviceId
+    })
+  });
+}
+
+export async function removeFavorite(userId: number, serviceId: number) {
+  return fetch(`${API_BASE}/favorites`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id_cliente: userId,
+      id_servico: serviceId
+    })
+  });
+}

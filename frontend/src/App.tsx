@@ -22,6 +22,7 @@ export default function App() {
         <Route path="/messages/inbox" element={<Inbox />} />
         <Route path="/messages/thread" element={<Thread />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/favorites" element={<Favorites />} />
       </Routes>
     </Router>
   );
