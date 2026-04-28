@@ -20,12 +20,12 @@ export default function Favorites() {
   }, []);
 
   async function loadFavorites() {
-    if (!user || !user.id_utilizador) return;
+    if (!user || !user.id) return;
 
     try {
       setLoading(true);
 
-      const data = await getFavorites(user.id_utilizador);
+      const data = await getFavorites(user.id);
       setFavorites(data);
 
     } catch (err) {
@@ -36,10 +36,10 @@ export default function Favorites() {
   }
 
   async function handleRemove(id_servico: number) {
-    if (!user || !user.id_utilizador) return;
+    if (!user || !user.id) return;
 
     try {
-      await removeFavorite(user.id_utilizador, id_servico);
+      await removeFavorite(user.id, id_servico);
 
       // remove direto da UI (mais rápido)
       setFavorites(prev => prev.filter(f => f.id_servico !== id_servico));

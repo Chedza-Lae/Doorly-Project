@@ -33,8 +33,12 @@ export default function ServiceDetail() {
         setService(data);
 
         if (user) {
-        const favs = await getFavorites(user.id_utilizador);
-        const exists = favs.some((f: any) => f.id_servico === Number(id));
+        const favs = await getFavorites(user.id);
+
+        const exists = Array.isArray(favs)
+          ? favs.some((f: any) => f.id_servico === Number(id))
+          : false;
+
         setIsFavorite(exists);
       }
       } catch (e: any) {
@@ -48,7 +52,7 @@ export default function ServiceDetail() {
     async function toggleFavorite() {
       if (!user || !service) return;
 
-      const userId = user.id_utilizador;
+      const userId = user.id;
       const serviceId = service.id_servico;
 
       if (!userId || !serviceId) return;
