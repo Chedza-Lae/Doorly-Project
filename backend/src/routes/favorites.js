@@ -20,9 +20,9 @@ router.get("/:id_cliente", async (req, res) => {
 
     res.json(result.recordset);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao buscar favoritos" });
-  }
+  console.error("ERRO FAVORITOS:", err);
+  res.status(500).json({ error: err.message });
+}
 });
 
 

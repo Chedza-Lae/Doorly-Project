@@ -8,6 +8,7 @@ import Message from "./pages/Message";
 import Inbox from "./pages/Inbox";
 import Thread from "./pages/Thread";
 import Admin from "./pages/Admin";
+import Favorites from './pages/Favorites';
 
 export default function App() {
   return (

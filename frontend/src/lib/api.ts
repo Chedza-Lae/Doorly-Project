@@ -81,7 +81,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
-export type StoredUser = { id: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" };
+export type StoredUser = {
+  id: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" 
+};
 
 export function setUser(user: StoredUser) {
   localStorage.setItem("doorly_user", JSON.stringify(user));
@@ -158,12 +160,12 @@ export const api = {
 };
 
 export async function getFavorites(userId: number) {
-  const res = await fetch(`${API_BASE}/favorites/${userId}`);
+  const res = await fetch(`${API_BASE}/api/favorites/${userId}`);
   return res.json();
 }
 
 export async function addFavorite(userId: number, serviceId: number) {
-  return fetch(`${API_BASE}/favorites`, {
+  return fetch(`${API_BASE}/api/favorites`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -174,7 +176,7 @@ export async function addFavorite(userId: number, serviceId: number) {
 }
 
 export async function removeFavorite(userId: number, serviceId: number) {
-  return fetch(`${API_BASE}/favorites`, {
+  return fetch(`${API_BASE}/api/favorites`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

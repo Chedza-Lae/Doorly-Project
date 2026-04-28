@@ -11,21 +11,37 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErr(null);
-    setLoading(true);
+  e.preventDefault();
+  setErr(null);
+  setLoading(true);
 
-    try {
-      const data = await api.login(email, password);
-      setToken(data.token);
-      setUser(data.user); 
-      navigate("/services"); 
-    } catch (e: any) {
-      setErr(e?.message || "Falha no login");
-    } finally {
-      setLoading(false);
+  try {
+    const data = await api.login(email, password);
+
+    // 🔥 garantir ID válido
+    const userId = data.user.id ?? data.user.id_utilizador;
+
+    if (!userId) {
+      throw new Error("Erro: utilizador sem ID vindo do backend");
     }
-  };
+
+    setToken(data.token);
+
+    setUser({
+      id: userId,
+      nome: data.user.nome,
+      email: data.user.email,
+      tipo: data.user.tipo
+    });
+
+    navigate("/services");
+
+  } catch (e: any) {
+    setErr(e?.message || "Falha no login");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center px-4">
