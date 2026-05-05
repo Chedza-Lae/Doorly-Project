@@ -15,8 +15,10 @@ const FALLBACK_IMAGE =
 export default function ServiceDetail() {
   const navigate = useNavigate();
   const user = getUser();
+  const userId = user?.id;
   const { id } = useParams();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   const [service, setService] = useState<ApiService | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,41 +34,56 @@ export default function ServiceDetail() {
         const data = await api.getService(Number(id));
         setService(data);
 
-        if (user) {
-        const favs = await getFavorites(user.id);
+        if (userId) {
+          const favs = await getFavorites();
 
-        const exists = Array.isArray(favs)
-          ? favs.some((f: any) => f.id_servico === Number(id))
-          : false;
+          // Compara com a lista real da BD para iniciar o coracao no estado certo.
+          const exists = favs.some((favorite) => favorite.id_servico === Number(id));
 
-        setIsFavorite(exists);
-      }
-      } catch (e: any) {
-        setErr(e?.message || "Erro ao carregar serviço");
+          setIsFavorite(exists);
+        } else {
+          setIsFavorite(false);
+        }
+      } catch (e: unknown) {
+        setErr(e instanceof Error ? e.message : "Erro ao carregar serviço");
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, userId]);
 
     async function toggleFavorite() {
-      if (!user || !service) return;
-
-      const userId = user.id;
-      const serviceId = service.id_servico;
-
-      if (!userId || !serviceId) return;
-
-      if (isFavorite) {
-        await removeFavorite(userId, serviceId);
-      } else {
-        await addFavorite(userId, serviceId);
+      if (!user) {
+        navigate("/login");
+        return;
       }
 
-      setIsFavorite(!isFavorite);
+      if (!service || favoriteLoading) return;
+
+      const serviceId = service.id_servico;
+
+      if (!serviceId) return;
+
+      const nextFavorite = !isFavorite;
+      setIsFavorite(nextFavorite);
+      setFavoriteLoading(true);
+
+      try {
+        // Grava a alteracao na BD e reverte a UI se a API falhar.
+        if (nextFavorite) {
+          await addFavorite(serviceId);
+        } else {
+          await removeFavorite(serviceId);
+        }
+      } catch (e: unknown) {
+        setIsFavorite(!nextFavorite);
+        setErr(e instanceof Error ? e.message : "Erro ao atualizar favorito");
+      } finally {
+        setFavoriteLoading(false);
+      }
     }
 
-  // protótipo: rating/reviews “fixos” mas com aspeto real
+  // protótipo: avaliação/comentários “fixos” mas com aspeto real
   const rating = useMemo(() => 4.8, []);
   const reviewsCount = useMemo(() => 0, []);
 
@@ -126,14 +143,16 @@ export default function ServiceDetail() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top image */}
+        {/* Imagem principal */}
         <div className="relative h-80 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-sm">
           <img src={image} alt={service.titulo} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-linear-to-t from-black/35 via-black/10 to-transparent" />
 
           <button
             onClick={toggleFavorite}
-            className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-lg hover:scale-110 transition-transform"
+            disabled={favoriteLoading}
+            className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-lg hover:scale-110 transition-transform disabled:opacity-60"
+            aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
           >
             <Heart
               className={`w-6 h-6 ${
@@ -153,7 +172,7 @@ export default function ServiceDetail() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main */}
+          {/* Conteúdo principal */}
           <div className="lg:col-span-2 space-y-6">
             {/* Title */}
             <div>
@@ -197,7 +216,7 @@ export default function ServiceDetail() {
               </div>
             </div>
 
-            {/* Provider */}
+            {/* Prestador */}
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-xl text-gray-900 mb-4">Prestador</h2>
 

@@ -38,11 +38,16 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "Backend Doorly a correr! 🚀" });
 });
 
-// servir frontend buildado
-app.use(express.static(path.join(__dirname, "../../frontend/dist")));
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/dist/index.html"));
-});
+// =============================
+// PRODUÇÃO (descomentar no deploy)
+// Serve o frontend buildado (dist)
+// =============================
+
+// app.use(express.static(path.join(__dirname, "../../frontend/dist")));
+
+// app.get(/.*/, (req, res) => {
+//   res.sendFile(path.join(__dirname, "../../frontend/dist/index.html"));
+// });
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend a correr em http://localhost:${PORT}`);

@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS `favoritos` (
   `id_servico` int NOT NULL,
   `data_adicionado` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_favorito`),
+  UNIQUE KEY `uk_favoritos_cliente_servico` (`id_cliente`,`id_servico`),
   KEY `fk_2` (`id_cliente`),
   KEY `fk_3` (`id_servico`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

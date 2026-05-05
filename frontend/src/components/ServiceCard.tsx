@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Star, MapPin, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
+import { addFavorite, getUser, removeFavorite } from '../lib/api';
 
 interface ServiceCardProps {
   id: string;
@@ -11,6 +12,8 @@ interface ServiceCardProps {
   reviews: number;
   location: string;
   provider: string;
+  initialIsFavorite?: boolean;
+  onFavoriteChange?: (serviceId: number, isFavorite: boolean) => void;
 }
 
 export default function ServiceCard({
@@ -21,8 +24,49 @@ export default function ServiceCard({
   rating,
   reviews,
   location,
+  initialIsFavorite = false,
+  onFavoriteChange,
 }: ServiceCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const navigate = useNavigate();
+  const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+
+  useEffect(() => {
+    setIsFavorite(initialIsFavorite);
+  }, [initialIsFavorite]);
+
+  async function handleFavoriteClick(e: MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+
+    const user = getUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const serviceId = Number(id);
+    if (!Number.isInteger(serviceId)) return;
+
+    const nextFavorite = !isFavorite;
+    setIsFavorite(nextFavorite);
+    setFavoriteLoading(true);
+
+    try {
+      // Grava/remova na BD antes de avisar a pagina mae sobre o novo estado.
+      if (nextFavorite) {
+        await addFavorite(serviceId);
+      } else {
+        await removeFavorite(serviceId);
+      }
+
+      onFavoriteChange?.(serviceId, nextFavorite);
+    } catch (error) {
+      setIsFavorite(!nextFavorite);
+      alert(error instanceof Error ? error.message : 'Erro ao atualizar favorito');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
@@ -34,11 +78,10 @@ export default function ServiceCard({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              setIsFavorite(!isFavorite);
-            }}
-            className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-sm hover:scale-110 transition-transform"
+            onClick={handleFavoriteClick}
+            disabled={favoriteLoading}
+            className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-sm hover:scale-110 transition-transform disabled:opacity-60"
+            aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
           >
             <Heart
               className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}

@@ -1,71 +1,96 @@
 import express from "express";
-import sql from "mssql";
+import pool from "../config/db.js";
+import { verifyToken } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/:id_cliente", async (req, res) => {
-  const { id_cliente } = req.params;
+router.use(verifyToken);
 
-  try {
-    const pool = await sql.connect();
-
-    const result = await pool.request()
-      .input("id_cliente", sql.Int, id_cliente)
-      .query(`
-        SELECT s.*
-        FROM Favoritos f
-        JOIN Servico s ON f.id_servico = s.id_servico
-        WHERE f.id_cliente = @id_cliente
-      `);
-
-    res.json(result.recordset);
-  } catch (err) {
-  console.error("ERRO FAVORITOS:", err);
-  res.status(500).json({ error: err.message });
+function parsePositiveId(value) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
-});
 
-
-// ➕ adicionar favorito
-router.post("/", async (req, res) => {
-  const { id_cliente, id_servico } = req.body;
+router.get("/", async (req, res) => {
+  const userId = req.user.id;
 
   try {
-    const pool = await sql.connect();
+    const [rows] = await pool.query(
+      `
+        SELECT s.*, u.nome AS prestador, f.data_adicionado
+        FROM favoritos f
+        JOIN servicos s ON f.id_servico = s.id_servico
+        JOIN utilizadores u ON s.id_prestador = u.id_utilizador
+        WHERE f.id_cliente = ? AND s.ativo = 1
+        ORDER BY f.data_adicionado DESC
+      `,
+      [userId]
+    );
 
-    await pool.request()
-      .input("id_cliente", sql.Int, id_cliente)
-      .input("id_servico", sql.Int, id_servico)
-      .query(`
-        INSERT INTO Favoritos (id_cliente, id_servico)
-        VALUES (@id_cliente, @id_servico)
-      `);
-
-    res.json({ success: true });
+    res.json(rows);
   } catch (err) {
-    res.status(400).json({ error: "Já existe ou erro" });
+    console.error("Erro ao carregar favoritos:", err);
+    res.status(500).json({ message: "Erro ao carregar favoritos" });
   }
 });
 
+router.post("/", async (req, res) => {
+  // O cliente envia so o servico; o utilizador vem do token para gravar o id_cliente correto.
+  const userId = req.user.id;
+  const serviceId = parsePositiveId(req.body.id_servico);
 
-// ❌ remover favorito
-router.delete("/", async (req, res) => {
-  const { id_cliente, id_servico } = req.body;
+  if (!serviceId) {
+    return res.status(400).json({ message: "Servico invalido" });
+  }
 
   try {
-    const pool = await sql.connect();
+    const [services] = await pool.query(
+      "SELECT id_servico FROM servicos WHERE id_servico = ? AND ativo = 1",
+      [serviceId]
+    );
 
-    await pool.request()
-      .input("id_cliente", sql.Int, id_cliente)
-      .input("id_servico", sql.Int, id_servico)
-      .query(`
-        DELETE FROM Favoritos
-        WHERE id_cliente = @id_cliente AND id_servico = @id_servico
-      `);
+    if (services.length === 0) {
+      return res.status(404).json({ message: "Servico nao encontrado" });
+    }
+
+    const [existing] = await pool.query(
+      "SELECT id_favorito FROM favoritos WHERE id_cliente = ? AND id_servico = ?",
+      [userId, serviceId]
+    );
+
+    if (existing.length === 0) {
+      await pool.query(
+        "INSERT INTO favoritos (id_cliente, id_servico) VALUES (?, ?)",
+        [userId, serviceId]
+      );
+    }
+
+    res.status(existing.length === 0 ? 201 : 200).json({ success: true });
+  } catch (err) {
+    console.error("Erro ao adicionar favorito:", err);
+    res.status(500).json({ message: "Erro ao adicionar favorito" });
+  }
+});
+
+router.delete("/", async (req, res) => {
+  // Remove sempre usando o utilizador autenticado para nao apagar favoritos de outra conta.
+  const userId = req.user.id;
+  const serviceId = parsePositiveId(req.body.id_servico);
+
+  if (!serviceId) {
+    return res.status(400).json({ message: "Servico invalido" });
+  }
+
+  try {
+    await pool.query(
+      "DELETE FROM favoritos WHERE id_cliente = ? AND id_servico = ?",
+      [userId, serviceId]
+    );
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "Erro ao remover" });
+    console.error("Erro ao remover favorito:", err);
+    res.status(500).json({ message: "Erro ao remover favorito" });
   }
 });
 

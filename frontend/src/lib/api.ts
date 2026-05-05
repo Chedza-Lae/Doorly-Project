@@ -15,7 +15,10 @@ export type ApiService = {
   localizacao?: string | null;
   prestador?: string;
   imagem_url?: string | null;
+  data_adicionado?: string;
 };
+
+type ServicesResponse = ApiService[] | { data?: ApiService[]; services?: ApiService[] };
 
 export type InboxItem = {
   id: number;
@@ -114,10 +117,16 @@ export const api = {
       body: JSON.stringify({ nome, email, password, tipo }),
     }),
 
+  forgotPassword: (email: string) =>
+  request("/api/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  }),
+  
   // services
   listServices: async (q?: string): Promise<ApiService[]> => {
     const qs = q?.trim() ? `?q=${encodeURIComponent(q.trim())}` : "";
-    const res = await request<any>(`/api/servicos${qs}`);
+    const res = await request<ServicesResponse>(`/api/servicos${qs}`);
 
     // adapta automaticamente
     if (Array.isArray(res)) return res;
@@ -159,29 +168,27 @@ export const api = {
     request<{ message: string }>(`/api/admin/services/${id}`, { method: "DELETE" }),
 };
 
-export async function getFavorites(userId: number) {
-  const res = await fetch(`${API_BASE}/api/favorites/${userId}`);
-  return res.json();
+export async function getFavorites(): Promise<ApiService[]> {
+  // Favoritos usam o token guardado para o backend descobrir o id_cliente correto.
+  return request<ApiService[]>("/api/favorites");
 }
 
-export async function addFavorite(userId: number, serviceId: number) {
-  return fetch(`${API_BASE}/api/favorites`, {
+export async function addFavorite(serviceId: number) {
+  // Enviamos so o id_servico; o id_cliente nunca deve vir do localStorage/body.
+  return request<{ success: boolean }>("/api/favorites", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      id_cliente: userId,
-      id_servico: serviceId
-    })
+      id_servico: serviceId,
+    }),
   });
 }
 
-export async function removeFavorite(userId: number, serviceId: number) {
-  return fetch(`${API_BASE}/api/favorites`, {
+export async function removeFavorite(serviceId: number) {
+  // Mantem o payload pequeno e deixa o backend proteger a remocao pelo token.
+  return request<{ success: boolean }>("/api/favorites", {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      id_cliente: userId,
-      id_servico: serviceId
-    })
+      id_servico: serviceId,
+    }),
   });
 }

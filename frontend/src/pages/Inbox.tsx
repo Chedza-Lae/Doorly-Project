@@ -1,23 +1,25 @@
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import type { InboxItem } from "../lib/api";
+import { MessageCircle, Clock3, Briefcase } from "lucide-react";
 
 export default function Inbox() {
   const navigate = useNavigate();
   const [items, setItems] = useState<InboxItem[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        setErr(null);
-        setLoading(true);
         const data = await api.inbox();
         setItems(data);
-      } catch (e: any) {
-        setErr(e?.message || "Erro ao carregar inbox");
+      } catch (e: unknown) {
+        setErr(e instanceof Error ? e.message : String(e));
       } finally {
         setLoading(false);
       }
@@ -25,52 +27,51 @@ export default function Inbox() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h1 className="text-2xl font-semibold">Inbox</h1>
+    <div className="min-h-screen bg-[#F3F4F6]">
+      <Navbar />
 
-        <button
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
-          onClick={() => navigate("/services")}
-        >
-          Ver serviços
-        </button>
-      </div>
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <h1 className="text-3xl text-[#0B1B46] mb-8">
+          As tuas mensagens
+        </h1>
 
-      {err && <p className="text-red-600 mb-3">{err}</p>}
+        {err && <p className="text-red-500">{err}</p>}
 
-      <div className="bg-white rounded-xl shadow border overflow-hidden">
-        {loading ? (
-          <div className="p-4 text-gray-600">A carregar mensagens…</div>
-        ) : items.length === 0 ? (
-          <div className="p-4 text-gray-600">Ainda não recebeste mensagens.</div>
-        ) : (
-          <ul>
-            {items.map((m) => (
-              <li
-                key={m.id}
-                className="p-4 border-b hover:bg-gray-50 cursor-pointer"
-                onClick={() =>
-                  navigate(`/messages/thread?service_id=${m.id_servico}&other_id=${m.id_remetente}`)
-                }
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="font-semibold truncate">{m.titulo_servico}</p>
-                    <p className="text-sm text-gray-600">De: {m.nome_remetente}</p>
+        <div className="space-y-4">
+          {items.map((m) => (
+            <div
+              key={m.id}
+              onClick={() =>
+                navigate(`/messages/thread?service_id=${m.id_servico}&other_id=${m.id_remetente}`)
+              }
+              className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md cursor-pointer transition"
+            >
+              <div className="flex justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-[#1E3A8A]" />
+                    <h2 className="font-semibold">{m.titulo_servico}</h2>
                   </div>
 
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
-                    {new Date(m.data_envio).toLocaleString()}
-                  </span>
+                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                    <MessageCircle className="w-4 h-4" />
+                    {m.nome_remetente}
+                  </div>
                 </div>
 
-                <p className="text-gray-700 mt-2 line-clamp-2">{m.conteudo}</p>
-              </li>
-            ))}
-          </ul>
-        )}
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <Clock3 className="w-4 h-4" />
+                  {new Date(m.data_envio).toLocaleDateString()}
+                </div>
+              </div>
+
+              <p className="mt-4 text-gray-600">{m.conteudo}</p>
+            </div>
+          ))}
+        </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

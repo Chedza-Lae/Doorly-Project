@@ -177,6 +177,7 @@ ALTER TABLE `estatisticas`
 --
 ALTER TABLE `favoritos`
   ADD PRIMARY KEY (`id_favorito`),
+  ADD UNIQUE KEY `uk_favoritos_cliente_servico` (`id_cliente`,`id_servico`),
   ADD KEY `fk_2` (`id_cliente`),
   ADD KEY `fk_3` (`id_servico`);
 
