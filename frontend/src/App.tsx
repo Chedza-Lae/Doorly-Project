@@ -9,6 +9,8 @@ import Inbox from "./pages/Inbox";
 import Thread from "./pages/Thread";
 import Admin from "./pages/Admin";
 import Favorites from './pages/Favorites';
+import About from './pages/About';
+import ForgotPassword from './pages/ForgotPass';
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
         <Route path="/messages/thread" element={<Thread />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/favorites" element={<Favorites />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </Router>
   );

@@ -8,26 +8,26 @@ export default function Footer() {
 
   return (
     <footer className="mt-20 border-t border-gray-200 bg-white">
-      {/* Top strip (premium vibe) */}
+      {/* Faixa superior */}
       <div className="bg-linear-to-r from-[#0B1B46] via-[#1E3A8A] to-[#0B1B46]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 text-white">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
             <div>
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-                Encontra serviços confiáveis. Reserva em minutos.
+                Encontra serviços de confiança. Reserva em minutos.
               </h2>
               <p className="text-white/80 mt-2 max-w-2xl">
-                Doorly liga clientes a prestadores verificados — com uma experiência simples, rápida e moderna.
+                A Doorly liga clientes a prestadores verificados, com uma experiência simples, rápida e moderna.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main footer */}
+      {/* Rodapé principal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          {/* Brand */}
+          {/* Marca */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-3">
               <img src="/doorly.png" alt="Doorly" className="h-16 w-auto object-contain" />
@@ -37,7 +37,7 @@ export default function Footer() {
               Plataforma que aproxima clientes e prestadores de serviços com confiança, rapidez e uma experiência moderna.
             </p>
 
-            {/* Social */}
+            {/* Redes sociais */}
             <div className="flex items-center gap-3 mt-5">
               <a
                 href="#"
@@ -79,7 +79,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/dashboard" className="text-gray-600 hover:text-[#1E3A8A] transition-colors">
-                  Dashboard
+                  Painel
                 </Link>
               </li> */}
             </ul>
@@ -132,13 +132,13 @@ export default function Footer() {
                 Suporte rápido
               </span>
               <span className="text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 border">
-                Prestadores verificados (protótipo)
+                Prestadores verificados
               </span>
             </div>
           </div>
         </div>
 
-        {/* Bottom */}
+        {/* Linha final */}
         <div className="mt-10 pt-8 border-t border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-600 text-sm">
             © {year} Doorly. Todos os direitos reservados.
@@ -160,4 +160,3 @@ export default function Footer() {
     </footer>
   );
 }
-

@@ -5,7 +5,7 @@ import ServiceCard from "../components/ServiceCard";
 import { Search, Wrench, Home, Zap, Leaf, Paintbrush, Hammer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, getFavorites, getUser } from "../lib/api";
 import type { ApiService as ApiServiceDTO } from "../lib/api";
 
 const FALLBACK_IMAGE =
@@ -20,6 +20,7 @@ function euro(value: string | number) {
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [services, setServices] = useState<ApiServiceDTO[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -29,10 +30,17 @@ export default function HomePage() {
   setLoading(true);
   setError(null);
   try {
-    const data = await api.listServices(q);
+    const user = getUser();
+    const [data, favorites] = await Promise.all([
+      api.listServices(q),
+      // Mantem os coracoes da Home alinhados com os favoritos gravados na BD.
+      user ? getFavorites() : Promise.resolve([]),
+    ]);
+
     setServices(data);
-  } catch (e: any) {
-    setError(e?.message ?? "Erro ao carregar serviços");
+    setFavoriteIds(new Set(favorites.map((favorite) => favorite.id_servico)));
+  } catch (e: unknown) {
+    setError(e instanceof Error ? e.message : "Erro ao carregar serviços");
     setServices([]);
   } finally {
     setLoading(false);
@@ -84,8 +92,19 @@ export default function HomePage() {
         reviews: 0,
         location: s.localizacao || "Portugal",
         provider: s.prestador || "Prestador",
+        initialIsFavorite: favoriteIds.has(s.id_servico),
       }))
     : [];
+
+  function handleFavoriteChange(serviceId: number, isFavorite: boolean) {
+    // Sincroniza a secao de destaque quando o ServiceCard muda o favorito.
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (isFavorite) next.add(serviceId);
+      else next.delete(serviceId);
+      return next;
+    });
+  }
 
   const onSearch = () => {
   const q = searchQuery.trim();
@@ -114,7 +133,7 @@ export default function HomePage() {
                 Pesquisa, compara e escolhe um prestador com confiança. Tudo num só sítio.
               </p>
 
-              {/* Search Bar */}
+              {/* Barra de pesquisa */}
               <div className="mt-7 bg-white rounded-2xl shadow-xl p-2 flex flex-col sm:flex-row gap-2">
                 <div className="flex-1 flex items-center gap-2 px-4">
                   <Search className="w-5 h-5 text-gray-400" />
@@ -198,7 +217,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Services Section */}
+      {/* Secção de serviços em destaque */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="flex items-end justify-between gap-6 mb-8">
           <div>
@@ -220,7 +239,11 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featured.map((service) => (
-              <ServiceCard key={service.id} {...service} />
+              <ServiceCard
+                key={service.id}
+                {...service}
+                onFavoriteChange={handleFavoriteChange}
+              />
             ))}
           </div>
         )}

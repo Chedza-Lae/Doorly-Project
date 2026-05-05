@@ -3,7 +3,7 @@ import Footer from "../components/Footer";
 import ServiceCard from "../components/ServiceCard";
 import { SlidersHorizontal, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { api } from "../lib/api";
+import { api, getFavorites, getUser } from "../lib/api";
 import type { ApiService } from "../lib/api";
 import { euro } from "../lib/money";
 
@@ -19,6 +19,7 @@ export default function Services() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [services, setServices] = useState<ApiService[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -27,10 +28,17 @@ export default function Services() {
       setLoading(true);
       setErr(null);
       try {
-        const data = await api.listServices();
+        const user = getUser();
+        const [data, favorites] = await Promise.all([
+          api.listServices(),
+          // So tentamos buscar favoritos quando ha sessao; a rota exige token.
+          user ? getFavorites() : Promise.resolve([]),
+        ]);
+
         setServices(data);
-      } catch (e: any) {
-        setErr(e?.message || "Erro ao carregar serviços");
+        setFavoriteIds(new Set(favorites.map((favorite) => favorite.id_servico)));
+      } catch (e: unknown) {
+        setErr(e instanceof Error ? e.message : "Erro ao carregar serviços");
       } finally {
         setLoading(false);
       }
@@ -102,7 +110,18 @@ export default function Services() {
     reviews: 0,
     location: s.localizacao || "Portugal",
     provider: s.prestador || "Prestador",
+    initialIsFavorite: favoriteIds.has(s.id_servico),
   }));
+
+  function handleFavoriteChange(serviceId: number, isFavorite: boolean) {
+    // Mantem a grelha sincronizada depois de adicionar/remover favorito no cartao.
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (isFavorite) next.add(serviceId);
+      else next.delete(serviceId);
+      return next;
+    });
+  }
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
@@ -114,7 +133,7 @@ export default function Services() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters */}
+          {/* Filtros */}
           <div className="lg:w-72 shrink-0">
             <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
@@ -183,7 +202,7 @@ export default function Services() {
                 </div>
 
                 <div>
-                  <label className="block text-sm text-gray-700 mb-2">Rating mínimo</label>
+                  <label className="block text-sm text-gray-700 mb-2">Avaliação mínima</label>
                   <select
                     value={minRating}
                     onChange={(e) => setMinRating(e.target.value)}
@@ -206,7 +225,7 @@ export default function Services() {
             </div>
           </div>
 
-          {/* Grid */}
+          {/* Grelha */}
           <div className="flex-1">
             <div className="mb-4 flex items-center justify-between">
               <p className="text-gray-600">
@@ -225,7 +244,11 @@ export default function Services() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {cards.map((service) => (
-                  <ServiceCard key={service.id} {...service} />
+                  <ServiceCard
+                    key={service.id}
+                    {...service}
+                    onFavoriteChange={handleFavoriteChange}
+                  />
                 ))}
               </div>
             )}

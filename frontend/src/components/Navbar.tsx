@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X, Heart, LayoutDashboard, Mail, LogOut, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { clearToken, getUser } from "../lib/api";
 
 type StoredUser = {
@@ -11,14 +11,12 @@ type StoredUser = {
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUserState] = useState<StoredUser | null>(null);
-
   const location = useLocation();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const u = getUser() as StoredUser | null;
-    setUserState(u);
+  // Rele o utilizador guardado sempre que a rota muda, para atualizar links apos login/logout.
+  const user = useMemo(() => {
+    void location.pathname;
+    return getUser() as StoredUser | null;
   }, [location.pathname]);
 
   const isLogged = !!user;
@@ -27,11 +25,10 @@ export default function Navbar() {
   const isPrestador = user?.tipo === "prestador";
 
   function logout() {
-  clearToken();
-  setUserState(null);
-  navigate("/");
-  window.location.reload();
-}
+    clearToken();
+    navigate("/");
+    window.location.reload();
+  }
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -45,11 +42,11 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link to="/services" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
-              Services
+              Serviços
             </Link>
 
             <Link to="/about" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
-              About
+              Sobre
             </Link>
 
             {/* Favoritos → só cliente */}
@@ -59,7 +56,7 @@ export default function Navbar() {
               </Link>
             )}
 
-            {/* Dashboard → só prestador */}
+            {/* Painel → só prestador */}
             {isPrestador && (
               <Link to="/dashboard" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
                 <LayoutDashboard className="w-5 h-5" />
@@ -77,10 +74,10 @@ export default function Navbar() {
               </Link>
             )}
 
-            {/* ✅ Admin só se admin */}
+            {/* Administração só se admin */}
             {isAdmin && (
               <Link to="/admin" className="text-gray-700 hover:text-[#1E3A8A] transition-colors">
-                Admin
+                Administração
               </Link>
             )}
           </div>
@@ -90,13 +87,13 @@ export default function Navbar() {
             {!isLogged ? (
               <>
                 <Link to="/login" className="px-4 py-2 text-[#1E3A8A] hover:text-[#3B82F6] transition-colors">
-                  Login
+                  Entrar
                 </Link>
                 <Link
                   to="/register"
                   className="px-6 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#3B82F6] transition-colors shadow-sm"
                 >
-                  Register
+                  Criar conta
                 </Link>
               </>
             ) : (
@@ -137,7 +134,7 @@ export default function Navbar() {
                 className="text-gray-700 hover:text-[#1E3A8A] transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                Services
+                Serviços
               </Link>
 
               {/* <Link
@@ -145,7 +142,7 @@ export default function Navbar() {
                 className="text-gray-700 hover:text-[#1E3A8A] transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                About
+                Sobre
               </Link>
 
               <Link
@@ -153,7 +150,7 @@ export default function Navbar() {
                 className="text-gray-700 hover:text-[#1E3A8A] transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                Favorites
+                Favoritos
               </Link>
 
               <Link
@@ -161,7 +158,7 @@ export default function Navbar() {
                 className="text-gray-700 hover:text-[#1E3A8A] transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                Dashboard
+                Painel
               </Link> */}
 
               {isLogged && (
@@ -181,7 +178,7 @@ export default function Navbar() {
                   className="text-gray-700 hover:text-[#1E3A8A] transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
-                  Admin
+                  Administração
                 </Link>
               )}
 
@@ -193,7 +190,7 @@ export default function Navbar() {
                       className="px-4 py-2 text-center text-[#1E3A8A] hover:bg-gray-50 rounded-lg transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
-                      Login
+                      Entrar
                     </Link>
 
                     <Link
@@ -201,7 +198,7 @@ export default function Navbar() {
                       className="px-4 py-2 text-center bg-[#1E3A8A] text-white rounded-lg hover:bg-[#3B82F6] transition-colors"
                       onClick={() => setIsOpen(false)}
                     >
-                      Register
+                      Criar conta
                     </Link>
                   </>
                 ) : (

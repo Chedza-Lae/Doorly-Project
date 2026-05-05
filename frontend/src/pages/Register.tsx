@@ -18,7 +18,7 @@ export default function Register() {
     setErr(null);
 
     if (!userType) return setErr("Escolhe o tipo de conta.");
-    if (password !== confirmPassword) return setErr("As passwords não coincidem.");
+    if (password !== confirmPassword) return setErr("As palavras-passe não coincidem.");
 
     const tipo = userType === "client" ? "cliente" : "prestador";
 
@@ -26,8 +26,8 @@ export default function Register() {
     try {
       await api.register(nome, email, password, tipo);
       navigate("/login");
-    } catch (e: any) {
-      setErr(e?.message || "Erro ao criar conta");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao criar conta");
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export default function Register() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl text-gray-900">
-                  {userType === "client" ? "Conta Cliente" : "Conta Prestador"}
+                  {userType === "client" ? "Conta de cliente" : "Conta de prestador"}
                 </h2>
                 <button onClick={() => setUserType(null)} type="button" className="text-sm text-[#1E3A8A] hover:text-[#3B82F6]">
                   Mudar
@@ -95,7 +95,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 mb-2">Email</label>
+                <label className="block text-sm text-gray-700 mb-2">E-mail</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -109,11 +109,12 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 mb-2">Password</label>
+                <label className="block text-sm text-gray-700 mb-2">Palavra-passe</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="password"
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent outline-none"
@@ -123,7 +124,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-sm text-gray-700 mb-2">Confirmar Password</label>
+                <label className="block text-sm text-gray-700 mb-2">Confirmar palavra-passe</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input

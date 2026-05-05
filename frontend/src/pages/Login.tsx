@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { api, setToken, setUser } from "../lib/api";
 
 export default function Login() {
@@ -10,38 +10,38 @@ export default function Login() {
   const [err, setErr] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setErr(null);
-  setLoading(true);
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErr(null);
+    setLoading(true);
 
-  try {
-    const data = await api.login(email, password);
+    try {
+      const data = await api.login(email.trim(), password);
 
-    // 🔥 garantir ID válido
-    const userId = data.user.id ?? data.user.id_utilizador;
+      // Aceita o ID nos dois nomes usados pelo backend/API.
+      const userId = data.user.id ?? data.user.id_utilizador;
 
-    if (!userId) {
-      throw new Error("Erro: utilizador sem ID vindo do backend");
+      if (userId == null) {
+        throw new Error("Erro: utilizador sem ID vindo do backend");
+      }
+
+      setToken(data.token);
+
+      setUser({
+        id: userId,
+        nome: data.user.nome,
+        email: data.user.email,
+        tipo: data.user.tipo,
+      });
+
+      navigate("/services");
+    } catch (e: unknown) {
+      // Evita `any` e mostra uma mensagem segura quando o erro nao e um Error.
+      setErr(e instanceof Error ? e.message : "Falha no login");
+    } finally {
+      setLoading(false);
     }
-
-    setToken(data.token);
-
-    setUser({
-      id: userId,
-      nome: data.user.nome,
-      email: data.user.email,
-      tipo: data.user.tipo
-    });
-
-    navigate("/services");
-
-  } catch (e: any) {
-    setErr(e?.message || "Falha no login");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center px-4">
@@ -63,7 +63,9 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm text-gray-700 mb-2">Email</label>
+              <label htmlFor="email" className="block text-sm text-gray-700 mb-2">
+                E-mail
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -79,12 +81,15 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm text-gray-700 mb-2">Password</label>
+              <label htmlFor="password" className="block text-sm text-gray-700 mb-2">
+                Palavra-passe
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   id="password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -93,6 +98,12 @@ export default function Login() {
                 />
               </div>
             </div>
+            <Link
+              to="/forgot-password"
+              className="text-sm text-[#1E3A8A] hover:underline"
+            >
+              Esqueceste-te da password?
+            </Link>
 
             <button
               type="submit"
