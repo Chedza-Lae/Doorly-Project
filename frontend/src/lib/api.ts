@@ -14,11 +14,28 @@ export type ApiService = {
   preco: string | number;
   localizacao?: string | null;
   prestador?: string;
+  prestador_email?: string;
   imagem_url?: string | null;
+  data_publicacao?: string;
   data_adicionado?: string;
+  ativo?: number | boolean;
+  visualizacoes?: number;
+  pedidos?: number;
+  rating?: string | number;
+  total_avaliacoes?: number;
 };
 
 type ServicesResponse = ApiService[] | { data?: ApiService[]; services?: ApiService[] };
+
+export type ServicePayload = {
+  titulo: string;
+  descricao: string;
+  categoria: string;
+  preco: string | number;
+  localizacao?: string | null;
+  imagem_url?: string | null;
+  ativo?: boolean | number;
+};
 
 export type InboxItem = {
   id: number;
@@ -138,6 +155,29 @@ export const api = {
 
   getService: (id: number) => request<ApiService>(`/api/servicos/${id}`),
 
+  providerServices: () => request<ApiService[]>("/api/servicos/me"),
+
+  createService: (payload: ServicePayload) =>
+    request<ApiService>("/api/servicos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateService: (id: number, payload: ServicePayload) =>
+    request<ApiService>(`/api/servicos/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  patchService: (id: number, payload: Partial<ServicePayload>) =>
+    request<ApiService>(`/api/servicos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+
+  deleteService: (id: number) =>
+    request<{ message: string }>(`/api/servicos/${id}`, { method: "DELETE" }),
+
   // messages
   sendMessage: (service_id: number, content: string) =>
     request<{ message: string }>("/api/messages", {
@@ -166,6 +206,12 @@ export const api = {
 
   adminDeleteService: (id: number) =>
     request<{ message: string }>(`/api/admin/services/${id}`, { method: "DELETE" }),
+
+  adminResetPassword: (id: number, password: string) =>
+  request(`/api/admin/users/${id}/reset-password`, {
+    method: "PUT",
+    body: JSON.stringify({ password })
+  }),
 };
 
 export async function getFavorites(): Promise<ApiService[]> {
