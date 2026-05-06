@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 12-Fev-2026 às 19:22
+-- Tempo de geração: 06-Maio-2026 às 09:39
 -- Versão do servidor: 10.4.32-MariaDB
 -- versão do PHP: 8.2.12
 
@@ -29,7 +29,6 @@ USE `doorly`;
 -- Estrutura da tabela `avaliacoes`
 --
 
-DROP TABLE IF EXISTS `avaliacoes`;
 CREATE TABLE `avaliacoes` (
   `id_avaliacao` int(11) NOT NULL,
   `id_servico` int(11) NOT NULL,
@@ -45,7 +44,6 @@ CREATE TABLE `avaliacoes` (
 -- Estrutura da tabela `estatisticas`
 --
 
-DROP TABLE IF EXISTS `estatisticas`;
 CREATE TABLE `estatisticas` (
   `id_estatistica` int(11) NOT NULL,
   `id_servico` int(11) NOT NULL,
@@ -60,7 +58,6 @@ CREATE TABLE `estatisticas` (
 -- Estrutura da tabela `favoritos`
 --
 
-DROP TABLE IF EXISTS `favoritos`;
 CREATE TABLE `favoritos` (
   `id_favorito` int(11) NOT NULL,
   `id_cliente` int(11) NOT NULL,
@@ -74,7 +71,6 @@ CREATE TABLE `favoritos` (
 -- Estrutura da tabela `mensagens`
 --
 
-DROP TABLE IF EXISTS `mensagens`;
 CREATE TABLE `mensagens` (
   `idmensagens` int(11) NOT NULL,
   `id_servico` int(11) NOT NULL,
@@ -90,7 +86,6 @@ CREATE TABLE `mensagens` (
 -- Estrutura da tabela `servicos`
 --
 
-DROP TABLE IF EXISTS `servicos`;
 CREATE TABLE `servicos` (
   `id_servico` int(11) NOT NULL,
   `id_prestador` int(11) NOT NULL,
@@ -117,7 +112,6 @@ INSERT INTO `servicos` (`id_servico`, `id_prestador`, `titulo`, `descricao`, `ca
 -- Estrutura da tabela `utilizadores`
 --
 
-DROP TABLE IF EXISTS `utilizadores`;
 CREATE TABLE `utilizadores` (
   `id_utilizador` int(11) NOT NULL,
   `nome` varchar(100) NOT NULL,
@@ -133,14 +127,15 @@ CREATE TABLE `utilizadores` (
 --
 
 INSERT INTO `utilizadores` (`id_utilizador`, `nome`, `email`, `password_hash`, `tipo`, `data_registo`, `ativo`) VALUES
-(1, 'Admin', 'admin@doorly.pt', '$2b$10$AgFa/a.6egAUwtqhRV9X0eSxWbz8Uj.GvMmcRlg55FMZZtdUOfCzW', 'admin', '2026-01-13 17:51:55', 1),
+(1, 'Admin', 'admin@doorly.pt', '$2b$10$VCBZWzMnawnKb/D34KbuNuOy7k7UG.xiqFvckQhcD6PNANWvAjG2u', 'admin', '2026-01-13 17:51:55', 1),
 (2, 'Maria Prestadora', 'prestador@doorly.pt', '$2b$10$lz30QJV8DU795JsvF3RhduCkqDOyXpt4Ivw5O0.gjemNxAUz.UG6q', 'prestador', '2026-01-25 17:44:00', 1),
-(3, 'Chedza', 'chedza@gmail.com', '$2b$10$M8WvDUNdUW8GgU/QQC4YUegrq8SKAYlWKF6nWRP4hW96ghiMu2ekC', 'cliente', '2026-02-06 14:55:49', 1);
+(3, 'Chedza', 'chedza@gmail.com', '$2b$10$M8WvDUNdUW8GgU/QQC4YUegrq8SKAYlWKF6nWRP4hW96ghiMu2ekC', 'cliente', '2026-02-06 14:55:49', 1),
+(5, 'Mateus', 'm06@gmail.com', '$2b$10$zQTDHgx5jgBtfnBo5Rla7O0jgVOAT0QWojHc/I.zri8/z3bh6ovjG', 'cliente', '2026-05-05 17:04:48', 1),
+(6, 'Chedza Sambrano', 'ched.sambrano@gmail.com', '$2b$10$51G85KQ9TSQ1im5jOeV8De02AyARq6OE94p738wuLUyEpQeXAAnYu', 'cliente', '2026-05-06 00:08:52', 1);
 
 --
 -- Acionadores `utilizadores`
 --
-DROP TRIGGER IF EXISTS `before_insert_admin`;
 DELIMITER $$
 CREATE TRIGGER `before_insert_admin` BEFORE INSERT ON `utilizadores` FOR EACH ROW BEGIN
   IF NEW.tipo = 'admin' THEN
@@ -224,7 +219,7 @@ ALTER TABLE `estatisticas`
 -- AUTO_INCREMENT de tabela `favoritos`
 --
 ALTER TABLE `favoritos`
-  MODIFY `id_favorito` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_favorito` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de tabela `mensagens`
@@ -242,7 +237,7 @@ ALTER TABLE `servicos`
 -- AUTO_INCREMENT de tabela `utilizadores`
 --
 ALTER TABLE `utilizadores`
-  MODIFY `id_utilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_utilizador` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Restrições para despejos de tabelas

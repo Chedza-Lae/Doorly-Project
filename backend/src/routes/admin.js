@@ -1,6 +1,7 @@
 import express from "express";
 import pool from "../config/db.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
 
@@ -55,4 +56,27 @@ router.delete("/services/:id", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
+router.put("/users/:id/reset-password", verifyToken, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      "UPDATE utilizadores SET password_hash = ? WHERE id_utilizador = ?",
+      [hashedPassword, id]
+    );
+
+    res.json({
+      message: "Password alterada com sucesso"
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Erro ao alterar password"
+    });
+  }
+});
 export default router;

@@ -105,18 +105,9 @@ router.post("/login", async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 
-  try {
-    const token = crypto.randomUUID();
-
-    res.json({
-      message: "Token gerado",
-      token
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: "Erro"
-    });
-  }
+  res.json({
+    message: "Pedido recebido"
+  });
 });
 
 export default router;

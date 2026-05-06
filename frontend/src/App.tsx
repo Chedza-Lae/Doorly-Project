@@ -10,7 +10,8 @@ import Thread from "./pages/Thread";
 import Admin from "./pages/Admin";
 import Favorites from './pages/Favorites';
 import About from './pages/About';
-import ForgotPassword from './pages/ForgotPass';
+import ForgotPassword from './pages/ForgotPassword';
+import ProviderProfile from './pages/ProviderProfile';
 
 export default function App() {
   return (
@@ -28,6 +29,8 @@ export default function App() {
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/about" element={<About />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/dashboard" element={<ProviderProfile />} />
+        <Route path="/provider/profile" element={<ProviderProfile />} />
       </Routes>
     </Router>
   );

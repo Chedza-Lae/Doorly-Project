@@ -7,9 +7,12 @@ import {
   BriefcaseBusiness,
   Trash2,
   ShieldCheck,
+  KeyRound,
+  X
 } from "lucide-react";
 
 type AdminService = {
+  id_prestador: number;
   id: number;
   titulo: string;
   nome_prestador: string;
@@ -19,6 +22,10 @@ export default function Admin() {
   const [services, setServices] = useState<AdminService[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [isResetOpen, setIsResetOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     loadServices();
@@ -51,6 +58,38 @@ export default function Admin() {
     } catch (e: unknown) {
       setErr((e as Error)?.message || "Erro ao eliminar serviço");
     }
+  }
+
+  async function resetPassword() {
+    if (!selectedUserId) return;
+
+    if (newPassword.length < 6) {
+      alert("A password deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("As passwords não coincidem.");
+      return;
+    }
+
+    try {
+      await api.adminResetPassword(selectedUserId, newPassword);
+
+      alert("Password alterada com sucesso.");
+
+      setIsResetOpen(false);
+      setSelectedUserId(null);
+    } catch (e: unknown) {
+      alert((e as Error)?.message || "Erro ao alterar password");
+    }
+  }
+
+  function openResetModal(userId: number) {
+    setSelectedUserId(userId);
+    setNewPassword("");
+    setConfirmPassword("");
+    setIsResetOpen(true);
   }
 
   const grouped = services.reduce(
@@ -160,6 +199,13 @@ export default function Admin() {
                         >
                           <Trash2 className="w-5 h-5 text-red-500" />
                         </button>
+
+                        <button
+                          onClick={() => openResetModal(service.id_prestador)}
+                          className="p-3 rounded-xl border border-gray-200 hover:bg-blue-50 transition"
+                        >
+                          <KeyRound className="w-5 h-5 text-[#1E3A8A]" />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -169,7 +215,57 @@ export default function Admin() {
           </div>
         )}
       </div>
+      {isResetOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white w-full max-w-md rounded-3xl p-8 relative shadow-xl">
+            <button
+              onClick={() => setIsResetOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-xl hover:bg-gray-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
+            <div className="mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
+                <KeyRound className="w-7 h-7 text-[#1E3A8A]" />
+              </div>
+
+              <h2 className="text-2xl font-semibold text-[#0B1B46]">
+                Reset Password
+              </h2>
+
+              <p className="text-gray-500 mt-2">
+                Define uma nova password para este prestador.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <input
+                type="password"
+                placeholder="Nova password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <input
+                type="password"
+                placeholder="Confirmar password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <button
+              onClick={resetPassword}
+              className="w-full mt-6 bg-[#0B1B46] text-white py-3 rounded-xl hover:bg-[#1E3A8A] transition"
+            >
+              Guardar nova password
+            </button>
+          </div>
+        </div>
+      )}
       <Footer />
     </div>
   );

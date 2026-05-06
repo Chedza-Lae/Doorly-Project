@@ -48,7 +48,11 @@ export default function Login() {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <Link to="/">
-            <img src="/doorly.png" alt="Doorly" className="h-10 mx-auto mb-4" />
+            <img
+              src="/doorly.png"
+              alt="Doorly"
+              className="h-30 w-auto mx-auto mb-6 object-contain"
+            />
           </Link>
           <h1 className="text-3xl text-gray-900 mb-2">Entrar</h1>
           <p className="text-gray-600">Acede à tua conta Doorly</p>
