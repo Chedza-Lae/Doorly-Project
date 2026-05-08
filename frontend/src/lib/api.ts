@@ -60,9 +60,15 @@ export type ThreadMsg = {
 
 export type AdminUserRow = {
   id: number;
+  id_utilizador?: number;
   nome: string;
   email: string;
   tipo: "cliente" | "prestador" | "admin" | string;
+};
+
+type AdminUserApiRow = Omit<AdminUserRow, "id"> & {
+  id?: number;
+  id_utilizador?: number;
 };
 
 export type AdminServiceRow = {
@@ -139,6 +145,12 @@ export const api = {
     method: "POST",
     body: JSON.stringify({ email }),
   }),
+
+  resetPassword: (token: string, password: string) =>
+  request("/api/auth/reset-password/" + token, {
+    method: "PUT",
+    body: JSON.stringify({ password }),
+  }),
   
   // services
   listServices: async (q?: string): Promise<ApiService[]> => {
@@ -197,7 +209,19 @@ export const api = {
     }),
 
   // admin
-  adminUsers: () => request<AdminUserRow[]>("/api/admin/users"),
+  adminUsers: async () => {
+    const rows = await request<AdminUserApiRow[]>("/api/admin/users");
+
+    return rows.map((row) => {
+      const id = row.id ?? row.id_utilizador;
+
+      if (id == null) {
+        throw new Error("Utilizador sem ID vindo do backend");
+      }
+
+      return { ...row, id };
+    });
+  },
 
   adminDeleteUser: (id: number) =>
     request<{ message: string }>(`/api/admin/users/${id}`, { method: "DELETE" }),

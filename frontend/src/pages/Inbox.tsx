@@ -10,8 +10,7 @@ export default function Inbox() {
   const navigate = useNavigate();
   const [items, setItems] = useState<InboxItem[]>([]);
   const [err, setErr] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {

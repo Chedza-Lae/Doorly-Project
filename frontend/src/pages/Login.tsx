@@ -51,7 +51,7 @@ export default function Login() {
             <img
               src="/doorly.png"
               alt="Doorly"
-              className="h-30 w-auto mx-auto mb-6 object-contain"
+              className="h-28 w-auto mx-auto mb-6 object-contain"
             />
           </Link>
           <h1 className="text-3xl text-gray-900 mb-2">Entrar</h1>
@@ -102,12 +102,14 @@ export default function Login() {
                 />
               </div>
             </div>
-            <Link
-              to="/forgot-password"
-              className="text-sm text-[#1E3A8A] hover:underline"
-            >
-              Esqueceste-te da password?
-            </Link>
+            <div className="flex justify-end">
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-[#1E3A8A] hover:text-[#2563EB] hover:underline transition"
+              >
+                Esqueceste-te da password?
+              </Link>
+            </div>
 
             <button
               type="submit"

@@ -2,6 +2,8 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pool from "../config/db.js";
+import crypto from "crypto";
+import { sendResetEmail } from "../utils/sendEmail.js";
 
 const router = express.Router();
 
@@ -105,9 +107,68 @@ router.post("/login", async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 
-  res.json({
-    message: "Pedido recebido"
-  });
+  try {
+    const [users] = await pool.query(
+      "SELECT * FROM utilizadores WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.json({
+        message: "Se o email existir, enviámos instruções."
+      });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+
+    await pool.query(
+      "UPDATE utilizadores SET reset_token = ? WHERE email = ?",
+      [token, email]
+    );
+
+    const resetLink =
+      `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+    await sendResetEmail(email, resetLink);
+
+    res.json({
+      message: "Email enviado com sucesso."
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Erro ao enviar email"
+    });
+  }
+});
+
+router.put("/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_RESET_SECRET
+    );
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      "UPDATE utilizadores SET password = ? WHERE id_utilizador = ?",
+      [hashedPassword, decoded.id]
+    );
+
+    res.json({
+      message: "Password alterada com sucesso"
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(400).json({
+      message: "Token inválido ou expirado"
+    });
+  }
 });
 
 export default router;
