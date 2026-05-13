@@ -124,7 +124,7 @@ export default function ProviderProfile() {
       return;
     }
 
-    if (user.tipo !== "prestador" && user.tipo !== "admin") {
+    if (user.tipo !== "prestador") {
       setLoading(false);
       return;
     }
@@ -305,7 +305,7 @@ export default function ProviderProfile() {
     }
   }
 
-  if (user && user.tipo !== "prestador" && user.tipo !== "admin") {
+  if (user && user.tipo !== "prestador" ) {
     return (
       <div className="min-h-screen bg-[#F3F4F6]">
         <Navbar />
