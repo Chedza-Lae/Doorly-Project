@@ -10,8 +10,10 @@ import Thread from "./pages/Thread";
 import Admin from "./pages/Admin";
 import Favorites from './pages/Favorites';
 import About from './pages/About';
-import ForgotPassword from './pages/ForgotPassword';
 import ProviderProfile from './pages/ProviderProfile';
+import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import QuoteRequest from "./pages/QuoteRequest";
 
 export default function App() {
   return (
@@ -25,12 +27,14 @@ export default function App() {
         <Route path="/messages/new" element={<Message />} />
         <Route path="/messages/inbox" element={<Inbox />} />
         <Route path="/messages/thread" element={<Thread />} />
+        <Route path="/quote/new" element={<QuoteRequest />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/about" element={<About />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/dashboard" element={<ProviderProfile />} />
         <Route path="/provider/profile" element={<ProviderProfile />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
     </Router>
   );

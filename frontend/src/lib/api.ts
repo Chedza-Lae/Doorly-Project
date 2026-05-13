@@ -42,10 +42,12 @@ export type InboxItem = {
   id_servico: number;
   id_remetente: number;
   id_destinatario: number;
+  other_id: number;
   conteudo: string;
   data_envio: string;
   titulo_servico: string;
   nome_remetente: string;
+  nome_interlocutor: string;
 };
 
 export type ThreadMsg = {
@@ -111,6 +113,37 @@ export type StoredUser = {
   id: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" 
 };
 
+export type QuoteRequestPayload = {
+  id_servico: number;
+  detalhes: string;
+  localizacao?: string;
+  data_preferida?: string;
+  periodo?: string;
+  urgencia?: string;
+  orcamento_estimado?: string | number | null;
+  contacto?: string;
+};
+
+export type ProviderQuote = {
+  id_orcamento: number;
+  id_servico: number;
+  id_cliente: number;
+  id_prestador: number;
+  detalhes: string;
+  localizacao?: string | null;
+  data_preferida?: string | null;
+  periodo?: string | null;
+  urgencia?: string | null;
+  orcamento_estimado?: string | number | null;
+  contacto?: string | null;
+  estado: "novo" | "em_analise" | "respondido" | "fechado" | string;
+  id_mensagem?: number | null;
+  data_pedido: string;
+  titulo_servico: string;
+  nome_cliente: string;
+  email_cliente: string;
+};
+
 export function setUser(user: StoredUser) {
   localStorage.setItem("doorly_user", JSON.stringify(user));
 }
@@ -147,10 +180,18 @@ export const api = {
   }),
 
   resetPassword: (token: string, password: string) =>
-  request("/api/auth/reset-password/" + token, {
+  request(`/api/auth/reset-password/${token}`, {
     method: "PUT",
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ password })
   }),
+
+  me: () => request<StoredUser>("/api/users/me"),
+
+  updateMe: (payload: { nome: string; email: string; currentPassword?: string; newPassword?: string }) =>
+    request<StoredUser>("/api/users/me", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
   
   // services
   listServices: async (q?: string): Promise<ApiService[]> => {
@@ -192,9 +233,9 @@ export const api = {
 
   // messages
   sendMessage: (service_id: number, content: string) =>
-    request<{ message: string }>("/api/messages", {
+    request<{ message: string; other_id: number }>("/api/messages", {
       method: "POST",
-      body: JSON.stringify({ service_id, content }),
+      body: JSON.stringify({ id_servico: service_id, conteudo: content }),
     }),
 
   inbox: () => request<InboxItem[]>("/api/messages/inbox"),
@@ -206,6 +247,20 @@ export const api = {
     request<{ message: string }>("/api/messages/reply", {
       method: "POST",
       body: JSON.stringify({ service_id, other_id, content }),
+    }),
+
+  createQuote: (payload: QuoteRequestPayload) =>
+    request<{ message: string; id_orcamento: number; other_id: number }>("/api/orcamentos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  providerQuotes: () => request<ProviderQuote[]>("/api/orcamentos/provider"),
+
+  updateQuoteStatus: (id: number, estado: ProviderQuote["estado"]) =>
+    request<{ message: string }>(`/api/orcamentos/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ estado }),
     }),
 
   // admin

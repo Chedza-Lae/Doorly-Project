@@ -114,28 +114,49 @@ router.post("/forgot-password", async (req, res) => {
     );
 
     if (users.length === 0) {
-      return res.json({
-        message: "Se o email existir, enviámos instruções."
+      return res.status(404).json({
+        message: "Utilizador não encontrado"
       });
     }
 
+    const user = users[0];
+
+    // gerar token
     const token = crypto.randomBytes(32).toString("hex");
 
+    // expira em 1 hora
+    const expires = new Date(Date.now() + 3600000);
+
+    // guardar token
     await pool.query(
-      "UPDATE utilizadores SET reset_token = ? WHERE email = ?",
-      [token, email]
+      `
+      UPDATE utilizadores
+      SET reset_token = ?, reset_expires = ?
+      WHERE id_utilizador = ?
+      `,
+      [token, expires, user.id_utilizador]
     );
 
-    const resetLink =
-      `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    // link frontend
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetLink = `${frontendUrl.replace(/\/$/, "")}/reset-password/${token}`;
 
-    await sendResetEmail(email, resetLink);
+    // enviar email
+    await sendResetEmail(user.email, resetLink);
 
     res.json({
-      message: "Email enviado com sucesso."
+      message: "Email enviado com sucesso"
     });
+
   } catch (error) {
     console.error(error);
+
+    if (error.code === "ECONNREFUSED") {
+      return res.status(503).json({
+        message: "Base de dados indisponível. Verifica se o MySQL/XAMPP está ligado."
+      });
+    }
+
     res.status(500).json({
       message: "Erro ao enviar email"
     });
@@ -147,26 +168,48 @@ router.put("/reset-password/:token", async (req, res) => {
   const { password } = req.body;
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_RESET_SECRET
+
+    const [users] = await pool.query(
+      `
+      SELECT *
+      FROM utilizadores
+      WHERE reset_token = ?
+      AND reset_expires > NOW()
+      `,
+      [token]
     );
+
+    if (users.length === 0) {
+      return res.status(400).json({
+        message: "Token inválido ou expirado"
+      });
+    }
+
+    const user = users[0];
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query(
-      "UPDATE utilizadores SET password = ? WHERE id_utilizador = ?",
-      [hashedPassword, decoded.id]
+      `
+      UPDATE utilizadores
+      SET
+        password_hash = ?,
+        reset_token = NULL,
+        reset_expires = NULL
+      WHERE id_utilizador = ?
+      `,
+      [hashedPassword, user.id_utilizador]
     );
 
     res.json({
       message: "Password alterada com sucesso"
     });
+
   } catch (error) {
     console.error(error);
 
-    res.status(400).json({
-      message: "Token inválido ou expirado"
+    res.status(500).json({
+      message: "Erro ao redefinir password"
     });
   }
 });

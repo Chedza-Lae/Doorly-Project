@@ -251,6 +251,7 @@ router.get("/:id", async (req, res) => {
       `SELECT
          s.*,
          u.nome AS prestador,
+         u.email AS prestador_email,
          COALESCE(AVG(a.nota), 0) AS rating,
          COUNT(a.id_avaliacao) AS total_avaliacoes
        FROM servicos s

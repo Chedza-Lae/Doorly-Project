@@ -137,6 +137,9 @@ export default function ServiceDetail() {
   const location = service.localizacao || "Portugal";
   const providerName = service.prestador || "Prestador";
   const price = euro(service.preco);
+  const contactHref = service.prestador_email
+    ? `mailto:${service.prestador_email}?subject=${encodeURIComponent(`Contacto sobre ${service.titulo}`)}`
+    : null;
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
@@ -254,7 +257,7 @@ export default function ServiceDetail() {
               <div>
                 <p className="text-sm text-gray-500 mb-1">Preço</p>
                 <p className="text-3xl text-[#1E3A8A]">{price}</p>
-                <p className="text-sm text-gray-500 mt-1">por hora (protótipo)</p>
+                <p className="text-sm text-gray-500 mt-1">por hora</p>
               </div>
 
               <div className="space-y-3 py-6 border-y border-gray-200">
@@ -268,7 +271,10 @@ export default function ServiceDetail() {
               </div>
 
               <div className="space-y-3">
-                <button className="w-full bg-[#0B1B46] text-white py-3 rounded-xl hover:bg-[#1E3A8A] transition-colors shadow-sm">
+                <button
+                  onClick={() => navigate(`/quote/new?service_id=${service.id_servico}`)}
+                  className="w-full bg-[#0B1B46] text-white py-3 rounded-xl hover:bg-[#1E3A8A] transition-colors shadow-sm"
+                >
                   Pedir orçamento
                 </button>
                 
@@ -281,7 +287,13 @@ export default function ServiceDetail() {
                 </button>
 
                 <button
-                  onClick={() => alert("Protótipo: aqui vai mostrar contacto/telefone do prestador.")}
+                  onClick={() => {
+                    if (contactHref) {
+                      window.location.href = contactHref;
+                    } else {
+                      navigate(`/messages/new?service_id=${service.id_servico}`);
+                    }
+                  }}
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-800 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   <Phone className="w-5 h-5" />

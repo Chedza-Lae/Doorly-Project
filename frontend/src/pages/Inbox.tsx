@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, getUser } from "../lib/api";
 import type { InboxItem } from "../lib/api";
 import { MessageCircle, Clock3, Briefcase } from "lucide-react";
 
@@ -10,7 +10,8 @@ export default function Inbox() {
   const navigate = useNavigate();
   const [items, setItems] = useState<InboxItem[]>([]);
   const [err, setErr] = useState<string | null>(null);
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const user = getUser();
 
   useEffect(() => {
     (async () => {
@@ -37,11 +38,23 @@ export default function Inbox() {
         {err && <p className="text-red-500">{err}</p>}
 
         <div className="space-y-4">
+          {loading && (
+            <div className="bg-white rounded-2xl p-6 shadow-sm text-gray-600">
+              A carregar conversas...
+            </div>
+          )}
+
+          {!loading && items.length === 0 && !err && (
+            <div className="bg-white rounded-2xl p-6 shadow-sm text-gray-600">
+              Ainda não tens conversas.
+            </div>
+          )}
+
           {items.map((m) => (
             <div
               key={m.id}
               onClick={() =>
-                navigate(`/messages/thread?service_id=${m.id_servico}&other_id=${m.id_remetente}`)
+                navigate(`/messages/thread?service_id=${m.id_servico}&other_id=${m.other_id}`)
               }
               className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md cursor-pointer transition"
             >
@@ -54,7 +67,12 @@ export default function Inbox() {
 
                   <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
                     <MessageCircle className="w-4 h-4" />
-                    {m.nome_remetente}
+                    {m.nome_interlocutor}
+                    {m.id_remetente === user?.id && (
+                      <span className="text-xs bg-blue-50 text-[#1E3A8A] px-2 py-0.5 rounded-full">
+                        enviado por ti
+                      </span>
+                    )}
                   </div>
                 </div>
 

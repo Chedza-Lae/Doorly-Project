@@ -98,7 +98,10 @@ export default function Navbar() {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-gray-700">
+                <Link
+                  to={isPrestador || isAdmin ? "/dashboard" : "/messages/inbox"}
+                  className="flex items-center gap-2 text-gray-700 hover:text-[#1E3A8A] transition-colors"
+                >
                   <div className="w-9 h-9 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center font-semibold">
                     {user.nome?.slice(0, 1)?.toUpperCase() || <User className="w-5 h-5" />}
                   </div>
@@ -106,7 +109,7 @@ export default function Navbar() {
                     <div className="text-sm font-medium">{user.nome}</div>
                     <div className="text-xs text-gray-500">{user.tipo}</div>
                   </div>
-                </div>
+                </Link>
 
                 <button
                   onClick={logout}

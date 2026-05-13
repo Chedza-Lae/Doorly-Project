@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
   BriefcaseBusiness,
+  CalendarDays,
   CheckCircle2,
   Eye,
   ImageIcon,
@@ -16,11 +17,12 @@ import {
   Power,
   Save,
   Search,
+  Settings,
   Star,
   Trash2,
   X,
 } from "lucide-react";
-import { api, getUser, type ApiService, type ServicePayload } from "../lib/api";
+import { api, getUser, setUser, type ApiService, type ProviderQuote, type ServicePayload } from "../lib/api";
 import { euro } from "../lib/money";
 
 const FALLBACK_IMAGE =
@@ -44,6 +46,14 @@ type FormState = {
   localizacao: string;
   imagem_url: string;
   ativo: boolean;
+};
+
+type AccountForm = {
+  nome: string;
+  email: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 };
 
 const emptyForm: FormState = {
@@ -92,6 +102,7 @@ export default function ProviderProfile() {
   const user = getUser();
 
   const [services, setServices] = useState<ApiService[]>([]);
+  const [quotes, setQuotes] = useState<ProviderQuote[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -99,6 +110,13 @@ export default function ProviderProfile() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [accountForm, setAccountForm] = useState<AccountForm>({
+    nome: user?.nome || "",
+    email: user?.email || "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   useEffect(() => {
     if (!user) {
@@ -111,16 +129,20 @@ export default function ProviderProfile() {
       return;
     }
 
-    void loadServices();
+    void loadDashboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function loadServices() {
+  async function loadDashboard() {
     try {
       setLoading(true);
       setErr(null);
-      const data = await api.providerServices();
-      setServices(data);
+      const [servicesData, quotesData] = await Promise.all([
+        api.providerServices(),
+        api.providerQuotes(),
+      ]);
+      setServices(servicesData);
+      setQuotes(quotesData);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao carregar serviços");
     } finally {
@@ -145,14 +167,14 @@ export default function ProviderProfile() {
     const total = services.length;
     const active = services.filter(isActive).length;
     const views = services.reduce((sum, service) => sum + Number(service.visualizacoes || 0), 0);
-    const requests = services.reduce((sum, service) => sum + Number(service.pedidos || 0), 0);
+    const requests = quotes.length || services.reduce((sum, service) => sum + Number(service.pedidos || 0), 0);
     const average =
       total === 0
         ? 0
         : services.reduce((sum, service) => sum + Number(service.preco || 0), 0) / total;
 
     return { total, active, inactive: total - active, views, requests, average };
-  }, [services]);
+  }, [services, quotes]);
 
   function startCreate(clearFeedback = true) {
     setEditingId(null);
@@ -235,6 +257,54 @@ export default function ProviderProfile() {
     }
   }
 
+  async function updateQuoteStatus(quote: ProviderQuote, estado: ProviderQuote["estado"]) {
+    setErr(null);
+    setNotice(null);
+
+    try {
+      await api.updateQuoteStatus(quote.id_orcamento, estado);
+      setQuotes((current) =>
+        current.map((item) => item.id_orcamento === quote.id_orcamento ? { ...item, estado } : item)
+      );
+      setNotice("Estado do pedido atualizado.");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao atualizar pedido");
+    }
+  }
+
+  async function handleAccountSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErr(null);
+    setNotice(null);
+
+    if (accountForm.newPassword && accountForm.newPassword !== accountForm.confirmPassword) {
+      setErr("As passwords nao coincidem.");
+      return;
+    }
+
+    try {
+      const updated = await api.updateMe({
+        nome: accountForm.nome,
+        email: accountForm.email,
+        currentPassword: accountForm.currentPassword,
+        newPassword: accountForm.newPassword,
+      });
+
+      setUser(updated);
+      setAccountForm((current) => ({
+        ...current,
+        nome: updated.nome,
+        email: updated.email,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+      setNotice("Definicoes da conta atualizadas.");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao atualizar conta");
+    }
+  }
+
   if (user && user.tipo !== "prestador" && user.tipo !== "admin") {
     return (
       <div className="min-h-screen bg-[#F3F4F6]">
@@ -277,10 +347,11 @@ export default function ProviderProfile() {
           </button>
         </div>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4 mb-8">
           <Stat label="Serviços" value={stats.total} icon={<BriefcaseBusiness className="w-5 h-5" />} />
           <Stat label="Ativos" value={stats.active} icon={<CheckCircle2 className="w-5 h-5" />} />
           <Stat label="Inativos" value={stats.inactive} icon={<Power className="w-5 h-5" />} />
+          <Stat label="Pedidos" value={stats.requests} icon={<MessageSquare className="w-5 h-5" />} />
           <Stat label="Visualizações" value={stats.views} icon={<Eye className="w-5 h-5" />} />
           <Stat label="Preço médio" value={euro(stats.average)} icon={<Star className="w-5 h-5" />} />
         </section>
@@ -298,6 +369,36 @@ export default function ProviderProfile() {
             <span>{notice}</span>
           </div>
         )}
+
+        <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Pedidos de orcamento</h2>
+              <p className="text-sm text-gray-500 mt-1">Pedidos recebidos pelos teus servicos.</p>
+            </div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm text-[#1E3A8A]">
+              <MessageSquare className="w-4 h-4" />
+              {quotes.length} pedidos
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="text-gray-600">
+              <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
+              A carregar pedidos...
+            </div>
+          ) : quotes.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-gray-300 p-5 text-gray-600">
+              Ainda não recebeste pedidos de orcamento.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {quotes.slice(0, 6).map((quote) => (
+                <QuoteCard key={quote.id_orcamento} quote={quote} onStatusChange={updateQuoteStatus} />
+              ))}
+            </div>
+          )}
+        </section>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
           <section className="xl:col-span-7">
@@ -448,6 +549,75 @@ export default function ProviderProfile() {
                 {editingId ? "Guardar alterações" : "Criar serviço"}
               </button>
             </form>
+
+            <form onSubmit={handleAccountSubmit} className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-5 flex items-start gap-3">
+                <div className="rounded-lg bg-blue-50 p-3 text-[#1E3A8A]">
+                  <Settings className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Definicoes da conta</h2>
+                  <p className="text-sm text-gray-500 mt-1">Perfil e password do prestador.</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Field label="Nome">
+                  <input
+                    value={accountForm.nome}
+                    onChange={(event) => setAccountForm((current) => ({ ...current, nome: event.target.value }))}
+                    className={fieldClass}
+                    required
+                  />
+                </Field>
+
+                <Field label="Email">
+                  <input
+                    type="email"
+                    value={accountForm.email}
+                    onChange={(event) => setAccountForm((current) => ({ ...current, email: event.target.value }))}
+                    className={fieldClass}
+                    required
+                  />
+                </Field>
+
+                <Field label="Password atual">
+                  <input
+                    type="password"
+                    value={accountForm.currentPassword}
+                    onChange={(event) => setAccountForm((current) => ({ ...current, currentPassword: event.target.value }))}
+                    className={fieldClass}
+                    placeholder="Obrigatoria so para mudar password"
+                  />
+                </Field>
+
+                <Field label="Nova password">
+                  <input
+                    type="password"
+                    value={accountForm.newPassword}
+                    onChange={(event) => setAccountForm((current) => ({ ...current, newPassword: event.target.value }))}
+                    className={fieldClass}
+                  />
+                </Field>
+
+                <Field label="Confirmar nova password">
+                  <input
+                    type="password"
+                    value={accountForm.confirmPassword}
+                    onChange={(event) => setAccountForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                    className={fieldClass}
+                  />
+                </Field>
+              </div>
+
+              <button
+                type="submit"
+                className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 text-gray-800 hover:bg-gray-50 transition-colors"
+              >
+                <Save className="w-5 h-5" />
+                Guardar definicoes
+              </button>
+            </form>
           </aside>
         </div>
       </main>
@@ -477,6 +647,52 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
       <span className="mb-2 block text-sm font-medium text-gray-700">{label}</span>
       {children}
     </label>
+  );
+}
+
+function QuoteCard({
+  quote,
+  onStatusChange,
+}: {
+  quote: ProviderQuote;
+  onStatusChange: (quote: ProviderQuote, estado: ProviderQuote["estado"]) => void;
+}) {
+  return (
+    <article className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="font-semibold text-gray-900">{quote.titulo_servico}</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            {quote.nome_cliente} · {quote.email_cliente}
+          </p>
+        </div>
+        <select
+          value={quote.estado}
+          onChange={(event) => onStatusChange(quote, event.target.value)}
+          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]"
+        >
+          <option value="novo">Novo</option>
+          <option value="em_analise">Em analise</option>
+          <option value="respondido">Respondido</option>
+          <option value="fechado">Fechado</option>
+        </select>
+      </div>
+
+      <p className="mt-3 line-clamp-3 text-sm text-gray-700">{quote.detalhes}</p>
+
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+        <span className="inline-flex items-center gap-2">
+          <MapPin className="w-4 h-4" />
+          {quote.localizacao || "A combinar"}
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <CalendarDays className="w-4 h-4" />
+          {quote.data_preferida ? new Date(quote.data_preferida).toLocaleDateString() : "A combinar"}
+        </span>
+        <span>Urgencia: {quote.urgencia || "Normal"}</span>
+        <span>{quote.orcamento_estimado ? euro(quote.orcamento_estimado) : "Orcamento a combinar"}</span>
+      </div>
+    </article>
   );
 }
 
