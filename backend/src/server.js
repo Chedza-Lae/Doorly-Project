@@ -13,6 +13,7 @@ import messagesRoutes from "./routes/message.js";
 import adminRoutes from "./routes/admin.js";
 import favoritesRoutes from "./routes/favorites.js";
 import orcamentosRoutes from "./routes/orcamentos.js";
+import avaliacoesRoutes from "./routes/avaliacoes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,7 @@ app.use("/api/messages", messagesRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/orcamentos", orcamentosRoutes);
+app.use("/api/avaliacoes", avaliacoesRoutes);
 
 // health check
 app.get("/api/health", (req, res) => {

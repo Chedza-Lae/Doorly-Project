@@ -14,6 +14,9 @@ import ProviderProfile from './pages/ProviderProfile';
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import QuoteRequest from "./pages/QuoteRequest";
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Cookies from './pages/Cookies';
 
 export default function App() {
   return (
@@ -35,6 +38,9 @@ export default function App() {
         <Route path="/provider/profile" element={<ProviderProfile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/cookies" element={<Cookies />} />
       </Routes>
     </Router>
   );

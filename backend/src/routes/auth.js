@@ -11,7 +11,7 @@ const router = express.Router();
 // REGISTO
 // ------------------------
 router.post("/register", async (req, res) => {
-  const { nome, email, password, tipo } = req.body;
+  const { nome, email, password, tipo, acceptedTerms, acceptedPrivacy } = req.body;
 
   try {
     // verificar se já existe utilizador com esse email
@@ -21,6 +21,20 @@ router.post("/register", async (req, res) => {
     );
     if (exists.length > 0) {
       return res.status(400).json({ msg: "Email já registado" });
+    }
+
+    if (!acceptedTerms || !acceptedPrivacy) {
+      return res.status(400).json({
+        msg: "Tens de aceitar os termos."
+      });
+    }
+
+    const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+    if (!strongPassword.test(password)) {
+      return res.status(400).json({
+        msg: "Password fraca."
+      });
     }
 
     // força tipo cliente se não for fornecido ou se tentar criar admin

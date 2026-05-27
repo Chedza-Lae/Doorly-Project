@@ -85,7 +85,7 @@ export default function Services() {
         (priceRange === "100+" && price > 100);
 
       // rating é protótipo (fixo). mas o filtro funciona na UI (para “demo”)
-      const rating = 4.8;
+      const rating = Number(s.rating || 0);
       const min = minRating === "all" ? 0 : Number(minRating);
       const matchesRating = rating >= min;
 
@@ -106,8 +106,8 @@ export default function Services() {
     image: s.imagem_url || FALLBACK_IMAGE,
     title: s.titulo,
     price: euro(s.preco),
-    rating: 4.8,
-    reviews: 0,
+    rating: Number(s.rating || 0),
+    reviews: Number(s.total_avaliacoes || 0),
     location: s.localizacao || "Portugal",
     provider: s.prestador || "Prestador",
     initialIsFavorite: favoriteIds.has(s.id_servico),

@@ -24,6 +24,7 @@ export default function ServiceCard({
   rating,
   reviews,
   location,
+  provider,
   initialIsFavorite = false,
   onFavoriteChange,
 }: ServiceCardProps) {
@@ -107,6 +108,8 @@ export default function ServiceCard({
           <MapPin className="w-4 h-4" />
           <span>{location}</span>
         </div>
+
+        <p className="mb-3 line-clamp-1 text-sm text-gray-500">{provider}</p>
 
         <div className="flex items-center justify-between">
           <div>

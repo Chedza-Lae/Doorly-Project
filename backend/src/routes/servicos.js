@@ -247,15 +247,37 @@ router.post("/dev", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+    const [exists] = await pool.query(
+      "SELECT id_servico FROM servicos WHERE id_servico = ?",
+      [id]
+    );
+
+    if (!exists.length) return res.status(404).json({ message: "Servico nao encontrado" });
+
+    const [statsUpdate] = await pool.query(
+      "UPDATE estatisticas SET visualizacoes = COALESCE(visualizacoes, 0) + 1, ultima_atualizacao = NOW() WHERE id_servico = ?",
+      [id]
+    );
+
+    if (statsUpdate.affectedRows === 0) {
+      await pool.query(
+        "INSERT INTO estatisticas (id_servico, visualizacoes, pedidos, ultima_atualizacao) VALUES (?, 1, 0, NOW())",
+        [id]
+      );
+    }
+
     const [rows] = await pool.query(
       `SELECT
          s.*,
          u.nome AS prestador,
          u.email AS prestador_email,
+         COALESCE(e.visualizacoes, 0) AS visualizacoes,
+         COALESCE(e.pedidos, 0) AS pedidos,
          COALESCE(AVG(a.nota), 0) AS rating,
          COUNT(a.id_avaliacao) AS total_avaliacoes
        FROM servicos s
        JOIN utilizadores u ON s.id_prestador = u.id_utilizador
+       LEFT JOIN estatisticas e ON e.id_servico = s.id_servico
        LEFT JOIN avaliacoes a ON a.id_servico = s.id_servico
        WHERE s.id_servico = ?
        GROUP BY s.id_servico`,

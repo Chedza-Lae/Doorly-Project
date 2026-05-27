@@ -114,7 +114,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2 text-gray-600">
                 <Mail className="w-4 h-4 text-gray-400" />
-                support@doorly.com
+                suporte@doorly.pt
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <Phone className="w-4 h-4 text-gray-400" />
@@ -148,12 +148,12 @@ export default function Footer() {
             <Link to="/terms" className="text-gray-600 hover:text-[#1E3A8A] transition-colors">
               Termos
             </Link>
-            <a href="#" className="text-gray-600 hover:text-[#1E3A8A] transition-colors">
+            <Link to="/privacy" className="text-gray-600 hover:text-[#1E3A8A] transition-colors">
               Privacidade
-            </a>
-            <a href="#" className="text-gray-600 hover:text-[#1E3A8A] transition-colors">
+            </Link>
+            <Link to="/cookies" className="text-gray-600 hover:text-[#1E3A8A] transition-colors">
               Cookies
-            </a>
+            </Link>
           </div>
         </div>
       </div>

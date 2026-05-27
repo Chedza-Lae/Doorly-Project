@@ -25,6 +25,17 @@ export type ApiService = {
   total_avaliacoes?: number;
 };
 
+export type Review = {
+  id_avaliacao: number;
+  id_servico: number;
+  id_cliente: number;
+  nota: number;
+  comentario: string;
+  data: string;
+  cliente: string;
+  titulo_servico?: string;
+};
+
 type ServicesResponse = ApiService[] | { data?: ApiService[]; services?: ApiService[] };
 
 export type ServicePayload = {
@@ -207,6 +218,16 @@ export const api = {
   },
 
   getService: (id: number) => request<ApiService>(`/api/servicos/${id}`),
+
+  serviceReviews: (id: number) => request<Review[]>(`/api/avaliacoes/service/${id}`),
+
+  providerReviews: () => request<Review[]>("/api/avaliacoes/provider"),
+
+  createReview: (payload: { id_servico: number; nota: number; comentario: string }) =>
+    request<{ message: string; rating: number; total_avaliacoes: number }>("/api/avaliacoes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
   providerServices: () => request<ApiService[]>("/api/servicos/me"),
 

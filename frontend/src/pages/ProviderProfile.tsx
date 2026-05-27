@@ -22,7 +22,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { api, getUser, setUser, type ApiService, type ProviderQuote, type ServicePayload } from "../lib/api";
+import { api, getUser, setUser, type ApiService, type ProviderQuote, type Review, type ServicePayload } from "../lib/api";
 import { euro } from "../lib/money";
 
 const FALLBACK_IMAGE =
@@ -103,6 +103,7 @@ export default function ProviderProfile() {
 
   const [services, setServices] = useState<ApiService[]>([]);
   const [quotes, setQuotes] = useState<ProviderQuote[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -137,12 +138,14 @@ export default function ProviderProfile() {
     try {
       setLoading(true);
       setErr(null);
-      const [servicesData, quotesData] = await Promise.all([
+      const [servicesData, quotesData, reviewsData] = await Promise.all([
         api.providerServices(),
         api.providerQuotes(),
+        api.providerReviews(),
       ]);
       setServices(servicesData);
       setQuotes(quotesData);
+      setReviews(reviewsData);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao carregar serviços");
     } finally {
@@ -168,13 +171,13 @@ export default function ProviderProfile() {
     const active = services.filter(isActive).length;
     const views = services.reduce((sum, service) => sum + Number(service.visualizacoes || 0), 0);
     const requests = quotes.length || services.reduce((sum, service) => sum + Number(service.pedidos || 0), 0);
-    const average =
-      total === 0
+    const averageRating =
+      reviews.length === 0
         ? 0
-        : services.reduce((sum, service) => sum + Number(service.preco || 0), 0) / total;
+        : reviews.reduce((sum, review) => sum + Number(review.nota || 0), 0) / reviews.length;
 
-    return { total, active, inactive: total - active, views, requests, average };
-  }, [services, quotes]);
+    return { total, active, inactive: total - active, views, requests, averageRating };
+  }, [services, quotes, reviews]);
 
   function startCreate(clearFeedback = true) {
     setEditingId(null);
@@ -353,7 +356,7 @@ export default function ProviderProfile() {
           <Stat label="Inativos" value={stats.inactive} icon={<Power className="w-5 h-5" />} />
           <Stat label="Pedidos" value={stats.requests} icon={<MessageSquare className="w-5 h-5" />} />
           <Stat label="Visualizações" value={stats.views} icon={<Eye className="w-5 h-5" />} />
-          <Stat label="Preço médio" value={euro(stats.average)} icon={<Star className="w-5 h-5" />} />
+          <Stat label="Avaliacao media" value={stats.averageRating.toFixed(1)} icon={<Star className="w-5 h-5" />} />
         </section>
 
         {err && (
@@ -395,6 +398,50 @@ export default function ProviderProfile() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {quotes.slice(0, 6).map((quote) => (
                 <QuoteCard key={quote.id_orcamento} quote={quote} onStatusChange={updateQuoteStatus} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Avaliacoes recebidas</h2>
+              <p className="text-sm text-gray-500 mt-1">Feedback dos clientes nos teus servicos.</p>
+            </div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1 text-sm text-gray-800">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              {stats.averageRating.toFixed(1)} media
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="text-gray-600">
+              <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
+              A carregar avaliacoes...
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-gray-300 p-5 text-gray-600">
+              Ainda nao recebeste avaliacoes.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {reviews.slice(0, 6).map((review) => (
+                <article key={review.id_avaliacao} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{review.titulo_servico}</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {review.cliente} · {new Date(review.data).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-gray-800">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      {Number(review.nota).toFixed(1)}
+                    </span>
+                  </div>
+                  <p className="mt-3 line-clamp-3 text-sm text-gray-700">{review.comentario}</p>
+                </article>
               ))}
             </div>
           )}

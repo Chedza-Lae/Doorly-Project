@@ -1,10 +1,10 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Star, MapPin, Heart, Phone, Mail, Clock, ShieldCheck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Star, MapPin, Heart, Phone, Mail, Clock, ShieldCheck, MessageSquare } from "lucide-react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
-import type { ApiService } from "../lib/api";
+import type { ApiService, Review } from "../lib/api";
 import { euro } from "../lib/money";
 import { useNavigate } from "react-router-dom";
 import { addFavorite, removeFavorite, getFavorites, getUser } from "../lib/api";
@@ -21,8 +21,13 @@ export default function ServiceDetail() {
   const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   const [service, setService] = useState<ApiService | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [reviewNotice, setReviewNotice] = useState<string | null>(null);
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewScore, setReviewScore] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -31,8 +36,12 @@ export default function ServiceDetail() {
       setLoading(true);
       setErr(null);
       try {
-        const data = await api.getService(Number(id));
+        const [data, reviewData] = await Promise.all([
+          api.getService(Number(id)),
+          api.serviceReviews(Number(id)),
+        ]);
         setService(data);
+        setReviews(reviewData);
 
         if (userId) {
           const favs = await getFavorites();
@@ -84,8 +93,50 @@ export default function ServiceDetail() {
     }
 
   // protótipo: avaliação/comentários “fixos” mas com aspeto real
-  const rating = useMemo(() => 4.8, []);
-  const reviewsCount = useMemo(() => 0, []);
+  async function handleReviewSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    if (!service) return;
+
+    setReviewSaving(true);
+    setErr(null);
+    setReviewNotice(null);
+
+    try {
+      const summary = await api.createReview({
+        id_servico: service.id_servico,
+        nota: reviewScore,
+        comentario: reviewComment,
+      });
+
+      const reviewData = await api.serviceReviews(service.id_servico);
+      setReviews(reviewData);
+      setService((current) =>
+        current
+          ? {
+              ...current,
+              rating: summary.rating,
+              total_avaliacoes: summary.total_avaliacoes,
+            }
+          : current
+      );
+      setReviewComment("");
+      setReviewScore(5);
+      setReviewNotice("Avaliacao guardada. Obrigado pelo feedback.");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao guardar avaliacao");
+    } finally {
+      setReviewSaving(false);
+    }
+  }
+
+  const rating = Number(service?.rating || 0);
+  const reviewsCount = Number(service?.total_avaliacoes || reviews.length || 0);
 
   // protótipo: “inclui” baseado na categoria (fica com cara de app real sem inventar texto gigante)
   const includes = useMemo(() => {
@@ -169,7 +220,7 @@ export default function ServiceDetail() {
           <div className="absolute bottom-4 left-4 right-4">
             <div className="inline-flex items-center gap-2 bg-white/90 px-3 py-1 rounded-full text-sm text-[#0B1B46]">
               <ShieldCheck className="w-4 h-4" />
-              Protótipo: dados reais do serviço • avaliações em fase seguinte
+              Dados reais do servico e avaliacoes de clientes
             </div>
           </div>
         </div>
@@ -183,7 +234,7 @@ export default function ServiceDetail() {
               <div className="flex flex-wrap items-center gap-4 text-gray-600">
                 <div className="flex items-center gap-1">
                   <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  <span>{rating}</span>
+                  <span>{rating.toFixed(1)}</span>
                   <span>({reviewsCount})</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -217,6 +268,99 @@ export default function ServiceDetail() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <div className="mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div>
+                  <h2 className="text-xl text-gray-900">Avaliacoes</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Comentarios de clientes que usaram ou contactaram este servico.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1 text-sm text-gray-800">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  {rating.toFixed(1)} media
+                </div>
+              </div>
+
+              {reviewNotice && (
+                <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                  {reviewNotice}
+                </div>
+              )}
+
+              {user?.tipo === "cliente" ? (
+                <form onSubmit={handleReviewSubmit} className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <div className="mb-3 flex flex-wrap items-center gap-3">
+                    <span className="text-sm font-medium text-gray-700">A tua nota</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((score) => (
+                        <button
+                          key={score}
+                          type="button"
+                          onClick={() => setReviewScore(score)}
+                          className="rounded p-1 text-yellow-500 hover:bg-white"
+                          aria-label={`${score} estrelas`}
+                        >
+                          <Star
+                            className={`w-6 h-6 ${
+                              score <= reviewScore ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <textarea
+                    value={reviewComment}
+                    onChange={(event) => setReviewComment(event.target.value)}
+                    className="min-h-24 w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-[#3B82F6]"
+                    placeholder="Conta como correu o servico, o que correu bem e o que podia ser melhor."
+                    required
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={reviewSaving}
+                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1B46] px-4 py-2 text-sm text-white hover:bg-[#1E3A8A] disabled:opacity-60"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    {reviewSaving ? "A guardar..." : "Publicar avaliacao"}
+                  </button>
+                </form>
+              ) : (
+                <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                  {user ? "Apenas clientes podem avaliar servicos." : "Entra como cliente para avaliar e comentar."}
+                </div>
+              )}
+
+              {reviews.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-300 p-5 text-gray-600">
+                  Ainda nao ha avaliacoes para este servico.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <article key={review.id_avaliacao} className="rounded-xl border border-gray-200 p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div>
+                          <p className="font-medium text-gray-900">{review.cliente}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(review.data).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-gray-700">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          {Number(review.nota).toFixed(1)}
+                        </div>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-gray-700">{review.comentario}</p>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Prestador */}
@@ -313,7 +457,7 @@ export default function ServiceDetail() {
                     <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-green-600" />
                     </div>
-                    <span>Pagamentos/avaliações na próxima fase</span>
+                    <span>Avaliacoes guardadas na base de dados</span>
                   </div>
                 </div>
               </div>
