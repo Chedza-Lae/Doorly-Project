@@ -1,0 +1,131 @@
+import bcrypt from "bcrypt";
+import { createHttpError } from "../utils/httpError.js";
+import { withTransaction } from "../utils/transactions.js";
+import { createAdminLog, listAdminLogs } from "../repositories/adminLogRepository.js";
+import {
+  deleteUser,
+  listUsers,
+  updatePassword,
+  updateUserRole,
+  updateUserStatus
+} from "../repositories/userRepository.js";
+import {
+  deleteServiceCascade,
+  listAdminServices
+} from "../repositories/serviceRepository.js";
+
+// CLEAN ARCHITECTURE: lista logs admin.
+export function getAdminLogs() {
+  return listAdminLogs();
+}
+
+// CLEAN ARCHITECTURE: lista utilizadores admin.
+export function getAdminUsers() {
+  return listUsers();
+}
+
+// CLEAN ARCHITECTURE: lista servicos admin.
+export function getAdminServices() {
+  return listAdminServices();
+}
+
+// NEW FEATURE: eliminar utilizador com admin log automatico.
+export async function removeUserAsAdmin(admin, userId) {
+  await withTransaction(async (client) => {
+    const rowCount = await deleteUser(userId, client);
+    if (rowCount === 0) {
+      throw createHttpError(404, "Utilizador não encontrado");
+    }
+
+    await createAdminLog({
+      admin_id: admin.id,
+      action: "DELETE_USER",
+      target_user_id: userId,
+      details: `Utilizador eliminado: ${userId}`
+    }, client);
+  });
+}
+
+// NEW FEATURE: eliminar servico com admin log automatico.
+export async function removeServiceAsAdmin(admin, serviceId) {
+  await withTransaction(async (client) => {
+    const rowCount = await deleteServiceCascade(serviceId, client);
+    if (rowCount === 0) {
+      throw createHttpError(404, "Servico não encontrado");
+    }
+
+    await createAdminLog({
+      admin_id: admin.id,
+      action: "DELETE_SERVICE",
+      target_user_id: null,
+      details: `Servico eliminado: ${serviceId}`
+    }, client);
+  });
+}
+
+// CLEAN ARCHITECTURE: reset password admin.
+export async function resetUserPassword(userId, password) {
+  if (!password || password.length < 8) {
+    throw createHttpError(400, "Password deve ter pelo menos 8 caracteres");
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await updatePassword(userId, hashedPassword);
+}
+
+// NEW FEATURE: banir utilizador com log automatico.
+export async function banUser(admin, userId, reason = "Violação dos termos") {
+  const rowCount = await updateUserStatus(userId, {
+    status: "banido",
+    ban_reason: reason
+  });
+
+  if (rowCount === 0) {
+    throw createHttpError(404, "Utilizador não encontrado");
+  }
+
+  await createAdminLog({
+    admin_id: admin.id,
+    action: "BAN_USER",
+    target_user_id: userId,
+    details: reason
+  });
+}
+
+// NEW FEATURE: desbanir utilizador com log automatico.
+export async function unbanUser(admin, userId) {
+  const rowCount = await updateUserStatus(userId, {
+    status: "ativo",
+    ban_reason: null,
+    ban_until: null
+  });
+
+  if (rowCount === 0) {
+    throw createHttpError(404, "Utilizador não encontrado");
+  }
+
+  await createAdminLog({
+    admin_id: admin.id,
+    action: "UNBAN_USER",
+    target_user_id: userId,
+    details: "Reativado pelo admin"
+  });
+}
+
+// NEW FEATURE: alterar permissoes com log automatico.
+export async function changeUserRole(admin, userId, tipo) {
+  if (!["cliente", "prestador", "admin"].includes(tipo)) {
+    throw createHttpError(400, "Tipo de utilizador inválido");
+  }
+
+  const rowCount = await updateUserRole(userId, tipo);
+  if (rowCount === 0) {
+    throw createHttpError(404, "Utilizador não encontrado");
+  }
+
+  await createAdminLog({
+    admin_id: admin.id,
+    action: "CHANGE_ROLE",
+    target_user_id: userId,
+    details: `Novo tipo: ${tipo}`
+  });
+}

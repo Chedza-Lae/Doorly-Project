@@ -1,7 +1,7 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useEffect, useMemo, useState } from "react";
-import { api, type AdminServiceRow, type AdminUserRow } from "../lib/api";
+import { api, type AdminServiceRow, type AdminUserRow,} from "../lib/api";
 import {
   UserCircle2,
   BriefcaseBusiness,
@@ -111,6 +111,25 @@ export default function Admin() {
       setSelectedUser(null);
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : "Erro ao alterar password");
+    }
+  }
+
+  async function banUser(id: number) {
+    const reason = prompt("Motivo do ban?");
+    try {
+      await api.adminBanUser(id, reason || "Violação dos termos");
+      await loadAdminData();
+    } catch (e) {
+      setErr("Erro ao banir utilizador");
+    }
+  }
+
+  async function unbanUser(id: number) {
+    try {
+      await api.adminUnbanUser(id);
+      await loadAdminData();
+    } catch (e) {
+      setErr("Erro ao reativar utilizador");
     }
   }
 
@@ -237,6 +256,8 @@ export default function Admin() {
                         })
                       }
                       onDelete={() => deleteUser(client)}
+                      onBan={() => banUser(client.id)}
+                      onUnban={() => unbanUser(client.id)}
                     />
                   ))}
                 </div>
@@ -420,46 +441,58 @@ function UserRow({
   user,
   onReset,
   onDelete,
+  onBan,
+  onUnban,
 }: {
   user: AdminUserRow;
   onReset: () => void;
   onDelete: () => void;
+  onBan: () => void;
+  onUnban: () => void;
 }) {
+  const isBanned = user.status === "banido";
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="w-12 h-12 shrink-0 rounded-2xl bg-white flex items-center justify-center border border-gray-100">
-          <UserCircle2 className="w-7 h-7 text-[#1E3A8A]" />
-        </div>
+      <div>
+        <p className="font-medium">{user.nome}</p>
+        <p className="text-sm text-gray-500">{user.email}</p>
 
-        <div className="min-w-0">
-          <p className="font-medium text-gray-900 truncate">{user.nome}</p>
-          <p className="text-sm text-gray-500 flex items-center gap-2 truncate">
-            <Mail className="w-4 h-4 shrink-0" />
-            {user.email}
-          </p>
-        </div>
+        <span
+          className={`text-xs px-2 py-1 rounded mt-2 inline-block ${
+            isBanned ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+          }`}
+        >
+          {isBanned ? "BANIDO" : "ATIVO"}
+        </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onReset}
-          className="p-3 rounded-xl border border-gray-200 bg-white hover:bg-blue-50 transition"
-          aria-label={`Alterar password de ${user.nome}`}
-          title="Alterar password"
-        >
-          <KeyRound className="w-5 h-5 text-[#1E3A8A]" />
+      <div className="flex gap-2">
+        <button onClick={onReset} className="px-3 py-2 bg-white border rounded-xl">
+          Password
         </button>
 
+        {!isBanned ? (
+          <button
+            onClick={onBan}
+            className="px-3 py-2 bg-red-500 text-white rounded-xl"
+          >
+            Banir
+          </button>
+        ) : (
+          <button
+            onClick={onUnban}
+            className="px-3 py-2 bg-green-500 text-white rounded-xl"
+          >
+            Desbanir
+          </button>
+        )}
+
         <button
-          type="button"
           onClick={onDelete}
-          className="p-3 rounded-xl border border-gray-200 bg-white hover:bg-red-50 transition"
-          aria-label={`Eliminar ${user.nome}`}
-          title="Eliminar cliente"
+          className="px-3 py-2 bg-black text-white rounded-xl"
         >
-          <Trash2 className="w-5 h-5 text-red-500" />
+          Eliminar
         </button>
       </div>
     </div>

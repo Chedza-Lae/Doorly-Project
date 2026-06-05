@@ -77,6 +77,7 @@ export type AdminUserRow = {
   nome: string;
   email: string;
   tipo: "cliente" | "prestador" | "admin" | string;
+  status: "ativo" | "banido" | string;
 };
 
 type AdminUserApiRow = Omit<AdminUserRow, "id"> & {
@@ -312,6 +313,37 @@ export const api = {
     method: "PUT",
     body: JSON.stringify({ password })
   }),
+
+  adminBanUser: async (id: number, reason: string) => {
+    const res = await fetch(`${API_BASE}/admin/users/${id}/ban`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ reason }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Erro ao banir utilizador");
+    }
+    return res.json();
+  },
+
+  adminUnbanUser: async (id: number) => {
+    const res = await fetch(`${API_BASE}/admin/users/${id}/unban`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("Erro ao reativar utilizador");
+    }
+
+    return res.json();
+  },
 };
 
 export async function getFavorites(): Promise<ApiService[]> {
@@ -337,4 +369,22 @@ export async function removeFavorite(serviceId: number) {
       id_servico: serviceId,
     }),
   });
+}
+
+export async function adminBanUser(id: number, reason?: string) {
+  const res = await fetch(`/admin/users/${id}/ban`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+
+  if (!res.ok) throw new Error("Erro ao banir utilizador");
+}
+
+export async function adminUnbanUser(id: number) {
+  const res = await fetch(`/admin/users/${id}/unban`, {
+    method: "PUT",
+  });
+
+  if (!res.ok) throw new Error("Erro ao reativar utilizador");
 }

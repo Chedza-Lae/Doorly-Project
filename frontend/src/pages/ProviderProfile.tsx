@@ -281,7 +281,7 @@ export default function ProviderProfile() {
     setNotice(null);
 
     if (accountForm.newPassword && accountForm.newPassword !== accountForm.confirmPassword) {
-      setErr("As passwords nao coincidem.");
+      setErr("As passwords não coincidem.");
       return;
     }
 
@@ -302,7 +302,7 @@ export default function ProviderProfile() {
         newPassword: "",
         confirmPassword: "",
       }));
-      setNotice("Definicoes da conta atualizadas.");
+      setNotice("Definições da conta atualizadas.");
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao atualizar conta");
     }
@@ -376,8 +376,8 @@ export default function ProviderProfile() {
         <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Pedidos de orcamento</h2>
-              <p className="text-sm text-gray-500 mt-1">Pedidos recebidos pelos teus servicos.</p>
+              <h2 className="text-xl font-semibold text-gray-900">Pedidos de orçamento</h2>
+              <p className="text-sm text-gray-500 mt-1">Pedidos recebidos pelos teus serviços.</p>
             </div>
             <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm text-[#1E3A8A]">
               <MessageSquare className="w-4 h-4" />
@@ -392,7 +392,7 @@ export default function ProviderProfile() {
             </div>
           ) : quotes.length === 0 ? (
             <div className="rounded-lg border border-dashed border-gray-300 p-5 text-gray-600">
-              Ainda não recebeste pedidos de orcamento.
+              Ainda não recebeste pedidos de orçamento.
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -406,23 +406,23 @@ export default function ProviderProfile() {
         <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Avaliacoes recebidas</h2>
-              <p className="text-sm text-gray-500 mt-1">Feedback dos clientes nos teus servicos.</p>
+              <h2 className="text-xl font-semibold text-gray-900">Avaliações recebidas</h2>
+              <p className="text-sm text-gray-500 mt-1">Feedback dos clientes nos teus serviços.</p>
             </div>
             <span className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1 text-sm text-gray-800">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              {stats.averageRating.toFixed(1)} media
+              {stats.averageRating.toFixed(1)} média
             </span>
           </div>
 
           {loading ? (
             <div className="text-gray-600">
               <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
-              A carregar avaliacoes...
+              A carregar avaliações...
             </div>
           ) : reviews.length === 0 ? (
             <div className="rounded-lg border border-dashed border-gray-300 p-5 text-gray-600">
-              Ainda nao recebeste avaliacoes.
+              Ainda não recebeste avaliações.
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -603,7 +603,7 @@ export default function ProviderProfile() {
                   <Settings className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Definicoes da conta</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Definições da conta</h2>
                   <p className="text-sm text-gray-500 mt-1">Perfil e password do prestador.</p>
                 </div>
               </div>
@@ -634,7 +634,7 @@ export default function ProviderProfile() {
                     value={accountForm.currentPassword}
                     onChange={(event) => setAccountForm((current) => ({ ...current, currentPassword: event.target.value }))}
                     className={fieldClass}
-                    placeholder="Obrigatoria so para mudar password"
+                    placeholder="Obrigatória só para mudar password"
                   />
                 </Field>
 
@@ -662,7 +662,7 @@ export default function ProviderProfile() {
                 className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 text-gray-800 hover:bg-gray-50 transition-colors"
               >
                 <Save className="w-5 h-5" />
-                Guardar definicoes
+                Guardar definições
               </button>
             </form>
           </aside>
@@ -737,7 +737,7 @@ function QuoteCard({
           {quote.data_preferida ? new Date(quote.data_preferida).toLocaleDateString() : "A combinar"}
         </span>
         <span>Urgencia: {quote.urgencia || "Normal"}</span>
-        <span>{quote.orcamento_estimado ? euro(quote.orcamento_estimado) : "Orcamento a combinar"}</span>
+        <span>{quote.orcamento_estimado ? euro(quote.orcamento_estimado) : "Orçamento a combinar"}</span>
       </div>
     </article>
   );

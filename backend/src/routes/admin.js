@@ -1,82 +1,31 @@
 import express from "express";
-import pool from "../config/db.js";
 import { verifyToken, isAdmin } from "../middleware/authMiddleware.js";
-import bcrypt from "bcrypt";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  ban,
+  logs,
+  removeService,
+  removeUser,
+  resetPassword,
+  role,
+  services,
+  unban,
+  users
+} from "../controllers/adminController.js";
 
+// CLEAN ARCHITECTURE: routes admin finas e protegidas.
 const router = express.Router();
 
-// USERS
-router.get("/users", verifyToken, isAdmin, async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      "SELECT id_utilizador, nome, email, tipo FROM utilizadores ORDER BY id_utilizador DESC"
-    );
-    res.json(rows);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Erro ao listar utilizadores" });
-  }
-});
+router.use(verifyToken, isAdmin);
+router.get("/logs", asyncHandler(logs));
+router.get("/users", asyncHandler(users));
+router.delete("/users/:id", asyncHandler(removeUser));
+router.put("/users/:id/reset-password", asyncHandler(resetPassword));
+router.put("/users/:id/ban", asyncHandler(ban));
+router.put("/users/:id/unban", asyncHandler(unban));
+// NEW FEATURE: alterar permissoes.
+router.patch("/users/:id/role", asyncHandler(role));
+router.get("/services", asyncHandler(services));
+router.delete("/services/:id", asyncHandler(removeService));
 
-router.delete("/users/:id", verifyToken, isAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.query("DELETE FROM utilizadores WHERE id_utilizador = ?", [id]);
-    res.json({ message: "Utilizador eliminado" });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Erro ao eliminar utilizador" });
-  }
-});
-
-// SERVICES
-router.get("/services", verifyToken, isAdmin, async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      `SELECT s.id_servico, s.titulo, s.id_prestador, u.nome AS nome_prestador
-       FROM servicos s
-       JOIN utilizadores u ON u.id_utilizador = s.id_prestador
-       ORDER BY s.id_servico DESC`
-    );
-    res.json(rows);
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Erro ao listar serviços" });
-  }
-});
-
-router.delete("/services/:id", verifyToken, isAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.query("DELETE FROM servicos WHERE id_servico = ?", [id]);
-    res.json({ message: "Serviço eliminado" });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Erro ao eliminar serviço" });
-  }
-});
-
-router.put("/users/:id/reset-password", verifyToken, isAdmin, async (req, res) => {
-  const { id } = req.params;
-  const { password } = req.body;
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await pool.query(
-      "UPDATE utilizadores SET password_hash = ? WHERE id_utilizador = ?",
-      [hashedPassword, id]
-    );
-
-    res.json({
-      message: "Password alterada com sucesso"
-    });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Erro ao alterar password"
-    });
-  }
-});
 export default router;
