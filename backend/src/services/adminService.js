@@ -3,7 +3,7 @@ import { createHttpError } from "../utils/httpError.js";
 import { withTransaction } from "../utils/transactions.js";
 import { createAdminLog, listAdminLogs } from "../repositories/adminLogRepository.js";
 import {
-  deleteUser,
+  deleteUserCascade,
   listUsers,
   updatePassword,
   updateUserRole,
@@ -32,7 +32,7 @@ export function getAdminServices() {
 // NEW FEATURE: eliminar utilizador com admin log automatico.
 export async function removeUserAsAdmin(admin, userId) {
   await withTransaction(async (client) => {
-    const rowCount = await deleteUser(userId, client);
+    const rowCount = await deleteUserCascade(userId, client);
     if (rowCount === 0) {
       throw createHttpError(404, "Utilizador não encontrado");
     }

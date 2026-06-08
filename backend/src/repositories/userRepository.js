@@ -128,3 +128,31 @@ export async function deleteUser(userId, client = pool) {
   );
   return result.rowCount;
 }
+
+// SUPABASE MIGRATION: elimina dependencias do utilizador antes do DELETE para respeitar FKs PostgreSQL.
+export async function deleteUserCascade(userId, client = pool) {
+  await client.query("DELETE FROM favoritos WHERE id_cliente = $1", [userId]);
+  await client.query("DELETE FROM avaliacoes WHERE id_cliente = $1", [userId]);
+  await client.query("DELETE FROM mensagens WHERE id_remetente = $1 OR id_destinatario = $2", [userId, userId]);
+  await client.query("DELETE FROM pedidos_orcamento WHERE id_cliente = $1 OR id_prestador = $2", [userId, userId]);
+  await client.query("DELETE FROM agendamentos WHERE id_cliente = $1 OR id_prestador = $2", [userId, userId]);
+  await client.query("DELETE FROM historico_servicos WHERE id_cliente = $1 OR id_prestador = $2", [userId, userId]);
+
+  const services = await client.query(
+    "SELECT id_servico FROM servicos WHERE id_prestador = $1",
+    [userId]
+  );
+
+  for (const service of services.rows) {
+    await client.query("DELETE FROM favoritos WHERE id_servico = $1", [service.id_servico]);
+    await client.query("DELETE FROM estatisticas WHERE id_servico = $1", [service.id_servico]);
+    await client.query("DELETE FROM avaliacoes WHERE id_servico = $1", [service.id_servico]);
+    await client.query("DELETE FROM mensagens WHERE id_servico = $1", [service.id_servico]);
+    await client.query("DELETE FROM pedidos_orcamento WHERE id_servico = $1", [service.id_servico]);
+    await client.query("DELETE FROM agendamentos WHERE id_servico = $1", [service.id_servico]);
+    await client.query("DELETE FROM historico_servicos WHERE id_servico = $1", [service.id_servico]);
+  }
+
+  await client.query("DELETE FROM servicos WHERE id_prestador = $1", [userId]);
+  return deleteUser(userId, client);
+}

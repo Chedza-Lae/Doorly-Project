@@ -10,7 +10,7 @@ import Thread from "./pages/Thread";
 import Admin from "./pages/Admin";
 import Favorites from './pages/Favorites';
 import About from './pages/About';
-import ProviderProfile from './pages/ProviderProfile';
+import ProviderProfile from './pages/ProviderDashboard';
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import QuoteRequest from "./pages/QuoteRequest";

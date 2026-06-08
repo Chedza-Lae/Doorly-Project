@@ -4,8 +4,6 @@ import "dotenv/config";
 import path from "path";
 import { fileURLToPath } from "url";
 
-
-// rotas
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import servicosRoutes from "./routes/servicos.js";
@@ -14,6 +12,9 @@ import adminRoutes from "./routes/admin.js";
 import favoritesRoutes from "./routes/favorites.js";
 import orcamentosRoutes from "./routes/orcamentos.js";
 import avaliacoesRoutes from "./routes/avaliacoes.js";
+import historicoRoutes from "./routes/historico.js";
+import agendamentosRoutes from "./routes/agendamentos.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,13 +22,13 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// middleware
+// CLEAN ARCHITECTURE: middleware global de parsing/CORS antes das rotas.
 app.use(cors({
-  origin: "http://localhost:5173"
+  origin: process.env.FRONTEND_URL || "http://localhost:5173"
 }));
 app.use(express.json());
 
-// ---- ROTAS ----
+// CLEAN ARCHITECTURE: routes ficam centralizadas no server.
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/servicos", servicosRoutes);
@@ -36,14 +37,17 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/orcamentos", orcamentosRoutes);
 app.use("/api/avaliacoes", avaliacoesRoutes);
+// NEW FEATURE: novas rotas completas.
+app.use("/api/historico", historicoRoutes);
+app.use("/api/agendamentos", agendamentosRoutes);
 
-// health check
+// CLEAN ARCHITECTURE: health check simples para monitorizacao.
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, message: "Backend Doorly a correr! 🚀" });
+  res.json({ ok: true, message: "Backend Doorly a correr!" });
 });
 
 // =============================
-// PRODUÇÃO (descomentar no deploy)
+// PRODUCAO (descomentar no deploy)
 // Serve o frontend buildado (dist)
 // =============================
 
@@ -53,6 +57,9 @@ app.get("/api/health", (req, res) => {
 //   res.sendFile(path.join(__dirname, "../../frontend/dist/index.html"));
 // });
 
+// CLEAN ARCHITECTURE: middleware global de erros depois das rotas.
+app.use(errorHandler);
+
 app.listen(PORT, () => {
-  console.log(`🚀 Backend a correr em http://localhost:${PORT}`);
+  console.log(`Backend a correr em http://localhost:${PORT}`);
 });
