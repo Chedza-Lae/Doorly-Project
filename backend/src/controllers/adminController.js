@@ -33,11 +33,11 @@ export async function services(req, res) {
   return res.json(await getAdminServices());
 }
 
-// NEW FEATURE: eliminar servico com log.
+// NEW FEATURE: eliminar serviço com log.
 export async function removeService(req, res) {
   const id = parsePositiveId(req.params.id, "id_servico");
   await removeServiceAsAdmin(req.user, id);
-  return res.json({ message: "Servico eliminado" });
+  return res.json({ message: "Serviço eliminado" });
 }
 
 // CLEAN ARCHITECTURE: reset password admin.
@@ -51,7 +51,7 @@ export async function resetPassword(req, res) {
 // NEW FEATURE: banir utilizador com log.
 export async function ban(req, res) {
   const id = parsePositiveId(req.params.id, "id_utilizador");
-  await banUser(req.user, id, req.body.reason || "Violacao dos termos");
+  await banUser(req.user, id, req.body.reason || "Violação dos termos");
   return res.json({ message: "Utilizador banido com sucesso" });
 }
 
@@ -62,10 +62,10 @@ export async function unban(req, res) {
   return res.json({ message: "Utilizador reativado" });
 }
 
-// NEW FEATURE: alterar permissoes com log.
+// NEW FEATURE: alterar permissões com log.
 export async function role(req, res) {
   const id = parsePositiveId(req.params.id, "id_utilizador");
   const tipo = requiredString(req.body.tipo, "tipo");
   await changeUserRole(req.user, id, tipo);
-  return res.json({ message: "Permissoes atualizadas" });
+  return res.json({ message: "Permissões atualizadas" });
 }

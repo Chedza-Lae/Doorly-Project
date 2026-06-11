@@ -14,7 +14,7 @@ export async function listFavorites(userId) {
   return result.rows;
 }
 
-// SUPABASE MIGRATION: valida servico ativo.
+// SUPABASE MIGRATION: valida serviço ativo.
 export async function findActiveService(serviceId) {
   const result = await pool.query(
     "SELECT id_servico FROM servicos WHERE id_servico = $1 AND ativo = true",

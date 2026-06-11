@@ -31,7 +31,7 @@ export default function Services() {
         const user = getUser();
         const [data, favorites] = await Promise.all([
           api.listServices(),
-          // So tentamos buscar favoritos quando ha sessao; a rota exige token.
+          // Só tentamos buscar favoritos quando há sessão; a rota exige token.
           user ? getFavorites() : Promise.resolve([]),
         ]);
 
@@ -114,7 +114,7 @@ export default function Services() {
   }));
 
   function handleFavoriteChange(serviceId: number, isFavorite: boolean) {
-    // Mantem a grelha sincronizada depois de adicionar/remover favorito no cartao.
+    // Mantém a grelha sincronizada depois de adicionar/remover favorito no cartão.
     setFavoriteIds((prev) => {
       const next = new Set(prev);
       if (isFavorite) next.add(serviceId);

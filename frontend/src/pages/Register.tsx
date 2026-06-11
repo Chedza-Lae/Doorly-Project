@@ -167,7 +167,7 @@ export default function Register() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
+                <div className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                   <p className={validations.upper ? "text-green-600" : "text-gray-400"}>
                     • Uma letra maiúscula
                   </p>

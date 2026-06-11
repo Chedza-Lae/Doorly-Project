@@ -104,17 +104,17 @@ CREATE TABLE `mensagens` (
 
 INSERT INTO `mensagens` (`idmensagens`, `id_servico`, `id_remetente`, `id_destinatario`, `conteudo`, `data_envio`) VALUES
 (2, 1, 6, 2, 'Olá', '2026-05-13 07:37:08'),
-(3, 1, 8, 2, 'Pedido de orcamento\n\nServico: Limpeza doméstica\nCliente: tomascarol@gmail.com\nDetalhes: Teste\nLocalizacao: Lisboa\nData preferida: 2026-05-14\nPeriodo: Manha\nUrgencia: Esta semana\nOrcamento aproximado: 29 EUR\nContacto: tomascarol@gmail.com', '2026-05-13 07:42:16'),
-(4, 1, 2, 8, 'Seu pedido de orçamento foi aceite.', '2026-05-13 07:43:03');
+(3, 1, 8, 2, 'Contraproposta\n\nServiço: Limpeza doméstica\nCliente: tomascarol@gmail.com\nDetalhes: Teste\nLocalização: Lisboa\nData preferida: 2026-05-14\nPeríodo: Manhã\nUrgência: Esta semana\nContraproposta aproximada: 29 EUR\nContacto: tomascarol@gmail.com', '2026-05-13 07:42:16'),
+(4, 1, 2, 8, 'A tua contraproposta foi aceite.', '2026-05-13 07:43:03');
 
 -- --------------------------------------------------------
 
 --
--- Estrutura da tabela `pedidos_orcamento`
+-- Estrutura da tabela `propostas`
 --
 
-DROP TABLE IF EXISTS `pedidos_orcamento`;
-CREATE TABLE `pedidos_orcamento` (
+DROP TABLE IF EXISTS `propostas`;
+CREATE TABLE `propostas` (
   `id_orcamento` int(11) NOT NULL,
   `id_servico` int(11) NOT NULL,
   `id_cliente` int(11) NOT NULL,
@@ -132,11 +132,11 @@ CREATE TABLE `pedidos_orcamento` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Extraindo dados da tabela `pedidos_orcamento`
+-- Extraindo dados da tabela `propostas`
 --
 
-INSERT INTO `pedidos_orcamento` (`id_orcamento`, `id_servico`, `id_cliente`, `id_prestador`, `detalhes`, `localizacao`, `data_preferida`, `periodo`, `urgencia`, `orcamento_estimado`, `contacto`, `estado`, `id_mensagem`, `data_pedido`) VALUES
-(1, 1, 8, 2, 'Teste', 'Lisboa', '2026-05-14', 'Manha', 'Esta semana', 29.00, 'tomascarol@gmail.com', 'novo', 3, '2026-05-13 07:42:16');
+INSERT INTO `propostas` (`id_orcamento`, `id_servico`, `id_cliente`, `id_prestador`, `detalhes`, `localizacao`, `data_preferida`, `periodo`, `urgencia`, `orcamento_estimado`, `contacto`, `estado`, `id_mensagem`, `data_pedido`) VALUES
+(1, 1, 8, 2, 'Teste', 'Lisboa', '2026-05-14', 'Manhã', 'Esta semana', 29.00, 'tomascarol@gmail.com', 'novo', 3, '2026-05-13 07:42:16');
 
 -- --------------------------------------------------------
 
@@ -250,13 +250,13 @@ ALTER TABLE `mensagens`
   ADD KEY `fk3` (`id_remetente`);
 
 --
--- Índices para tabela `pedidos_orcamento`
+-- Índices para tabela `propostas`
 --
-ALTER TABLE `pedidos_orcamento`
+ALTER TABLE `propostas`
   ADD PRIMARY KEY (`id_orcamento`),
-  ADD KEY `idx_orcamentos_prestador` (`id_prestador`,`data_pedido`),
-  ADD KEY `idx_orcamentos_cliente` (`id_cliente`,`data_pedido`),
-  ADD KEY `idx_orcamentos_servico` (`id_servico`);
+  ADD KEY `idx_propostas_prestador` (`id_prestador`,`data_pedido`),
+  ADD KEY `idx_propostas_cliente` (`id_cliente`,`data_pedido`),
+  ADD KEY `idx_propostas_servico` (`id_servico`);
 
 --
 -- Índices para tabela `servicos`
@@ -301,9 +301,9 @@ ALTER TABLE `mensagens`
   MODIFY `idmensagens` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT de tabela `pedidos_orcamento`
+-- AUTO_INCREMENT de tabela `propostas`
 --
-ALTER TABLE `pedidos_orcamento`
+ALTER TABLE `propostas`
   MODIFY `id_orcamento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --

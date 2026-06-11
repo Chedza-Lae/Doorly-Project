@@ -33,7 +33,7 @@ export default function HomePage() {
     const user = getUser();
     const [data, favorites] = await Promise.all([
       api.listServices(q),
-      // Mantem os coracoes da Home alinhados com os favoritos gravados na BD.
+      // Mantém os corações da Home alinhados com os favoritos gravados na BD.
       user ? getFavorites() : Promise.resolve([]),
     ]);
 
@@ -97,7 +97,7 @@ export default function HomePage() {
     : [];
 
   function handleFavoriteChange(serviceId: number, isFavorite: boolean) {
-    // Sincroniza a secao de destaque quando o ServiceCard muda o favorito.
+    // Sincroniza a secção de destaque quando o ServiceCard muda o favorito.
     setFavoriteIds((prev) => {
       const next = new Set(prev);
       if (isFavorite) next.add(serviceId);

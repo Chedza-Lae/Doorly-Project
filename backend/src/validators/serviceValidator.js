@@ -1,7 +1,8 @@
 import {
   optionalString,
   requiredString,
-  validateNonNegativeNumber
+  validateNonNegativeNumber,
+  validateOptionalUrl
 } from "./commonValidators.js";
 import { createHttpError } from "../utils/httpError.js";
 
@@ -16,7 +17,7 @@ export const allowedServiceUpdateFields = [
   "imagem_url"
 ];
 
-// CLEAN ARCHITECTURE: valida payload completo de servico.
+// CLEAN ARCHITECTURE: valida payload completo de serviço.
 export function validateServicePayload(body) {
   return {
     titulo: requiredString(body.titulo, "titulo"),
@@ -24,17 +25,18 @@ export function validateServicePayload(body) {
     categoria: requiredString(body.categoria, "categoria"),
     preco: validateNonNegativeNumber(body.preco, "preco"),
     localizacao: optionalString(body.localizacao),
-    imagem_url: optionalString(body.imagem_url)
+    imagem_url: validateOptionalUrl(body.imagem_url, "imagem_url")
   };
 }
 
-// CLEAN ARCHITECTURE: valida payload parcial de servico.
+// CLEAN ARCHITECTURE: valida payload parcial de serviço.
 export function validatePartialServicePayload(body) {
   const entries = allowedServiceUpdateFields
     .filter((field) => Object.prototype.hasOwnProperty.call(body, field))
     .map((field) => {
       if (field === "ativo") return [field, Boolean(body[field])];
       if (field === "preco") return [field, validateNonNegativeNumber(body[field], "preco")];
+      if (field === "imagem_url") return [field, validateOptionalUrl(body[field], "imagem_url")];
       return [field, optionalString(body[field])];
     });
 

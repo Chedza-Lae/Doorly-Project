@@ -11,12 +11,12 @@ import {
   update
 } from "../controllers/quoteController.js";
 
-// CLEAN ARCHITECTURE: routes de pedidos de orcamento sem queries diretas.
+// CLEAN ARCHITECTURE: routes de contrapropostas sem queries diretas.
 const router = express.Router();
 
 router.use(verifyToken);
 router.post("/", asyncHandler(create));
-// NEW FEATURE: CRUD completo de pedidos.
+// NEW FEATURE: CRUD completo de contrapropostas.
 router.get("/", asyncHandler(mine));
 router.get("/me", asyncHandler(mine));
 router.get("/provider", asyncHandler(provider));

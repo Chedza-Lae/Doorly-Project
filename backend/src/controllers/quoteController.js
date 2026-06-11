@@ -13,22 +13,22 @@ import {
   removeQuote
 } from "../services/quoteService.js";
 
-// CLEAN ARCHITECTURE: cria pedido de orcamento.
+// CLEAN ARCHITECTURE: cria contraproposta.
 export async function create(req, res) {
   const payload = validateQuotePayload(req.body);
   const result = await createBudgetRequest(req.user, payload);
   return res.status(201).json({
-    message: "Pedido de orcamento enviado",
+    message: "Contraproposta enviada",
     ...result
   });
 }
 
-// NEW FEATURE: CRUD - pedidos do cliente.
+// NEW FEATURE: CRUD - contrapropostas do cliente.
 export async function mine(req, res) {
   return res.json(await getMyQuotes(req.user));
 }
 
-// CLEAN ARCHITECTURE: pedidos do prestador.
+// CLEAN ARCHITECTURE: contrapropostas do prestador.
 export async function provider(req, res) {
   return res.json(await getProviderQuotes(req.user));
 }
@@ -46,7 +46,7 @@ export async function update(req, res) {
   return res.json(await editQuote(req.user, id, payload));
 }
 
-// NEW FEATURE: atualizacao de estado.
+// NEW FEATURE: atualização de estado.
 export async function status(req, res) {
   const id = parsePositiveId(req.params.id, "id_orcamento");
   const estado = validateQuoteStatus(req.body);
@@ -58,5 +58,5 @@ export async function status(req, res) {
 export async function remove(req, res) {
   const id = parsePositiveId(req.params.id, "id_orcamento");
   await removeQuote(req.user, id);
-  return res.json({ message: "Pedido eliminado" });
+  return res.json({ message: "Contraproposta eliminada" });
 }

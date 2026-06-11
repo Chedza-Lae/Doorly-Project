@@ -24,12 +24,12 @@ export function getAdminUsers() {
   return listUsers();
 }
 
-// CLEAN ARCHITECTURE: lista servicos admin.
+// CLEAN ARCHITECTURE: lista serviços admin.
 export function getAdminServices() {
   return listAdminServices();
 }
 
-// NEW FEATURE: eliminar utilizador com admin log automatico.
+// NEW FEATURE: eliminar utilizador com admin log automático.
 export async function removeUserAsAdmin(admin, userId) {
   await withTransaction(async (client) => {
     const rowCount = await deleteUserCascade(userId, client);
@@ -46,19 +46,19 @@ export async function removeUserAsAdmin(admin, userId) {
   });
 }
 
-// NEW FEATURE: eliminar servico com admin log automatico.
+// NEW FEATURE: eliminar serviço com admin log automático.
 export async function removeServiceAsAdmin(admin, serviceId) {
   await withTransaction(async (client) => {
     const rowCount = await deleteServiceCascade(serviceId, client);
     if (rowCount === 0) {
-      throw createHttpError(404, "Servico não encontrado");
+      throw createHttpError(404, "Serviço não encontrado");
     }
 
     await createAdminLog({
       admin_id: admin.id,
       action: "DELETE_SERVICE",
       target_user_id: null,
-      details: `Servico eliminado: ${serviceId}`
+      details: `Serviço eliminado: ${serviceId}`
     }, client);
   });
 }
@@ -72,7 +72,7 @@ export async function resetUserPassword(userId, password) {
   await updatePassword(userId, hashedPassword);
 }
 
-// NEW FEATURE: banir utilizador com log automatico.
+// NEW FEATURE: banir utilizador com log automático.
 export async function banUser(admin, userId, reason = "Violação dos termos") {
   const rowCount = await updateUserStatus(userId, {
     status: "banido",
@@ -91,7 +91,7 @@ export async function banUser(admin, userId, reason = "Violação dos termos") {
   });
 }
 
-// NEW FEATURE: desbanir utilizador com log automatico.
+// NEW FEATURE: desbanir utilizador com log automático.
 export async function unbanUser(admin, userId) {
   const rowCount = await updateUserStatus(userId, {
     status: "ativo",
@@ -111,7 +111,7 @@ export async function unbanUser(admin, userId) {
   });
 }
 
-// NEW FEATURE: alterar permissoes com log automatico.
+// NEW FEATURE: alterar permissões com log automático.
 export async function changeUserRole(admin, userId, tipo) {
   if (!["cliente", "prestador", "admin"].includes(tipo)) {
     throw createHttpError(400, "Tipo de utilizador inválido");

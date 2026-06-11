@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-// SUPABASE MIGRATION: cria estatisticas iniciais de servico.
+// SUPABASE MIGRATION: cria estatísticas iniciais de serviço.
 export async function createStatisticsForService(serviceId, client = pool) {
   await client.query(
     `INSERT INTO estatisticas (id_servico, visualizacoes, pedidos, ultima_atualizacao)

@@ -30,21 +30,21 @@ export async function provider(req, res) {
 
 // NEW FEATURE: edita agendamento.
 export async function update(req, res) {
-  const id = parsePositiveId(req.params.id, "id_agendamento");
+  const id = parsePositiveId(req.params.id, "id");
   const payload = validateSchedulePayload(req.body);
   return res.json(await editSchedule(req.user, id, payload));
 }
 
 // NEW FEATURE: atualiza estado.
 export async function status(req, res) {
-  const id = parsePositiveId(req.params.id, "id_agendamento");
+  const id = parsePositiveId(req.params.id, "id");
   const estado = validateScheduleStatus(req.body);
   return res.json(await changeScheduleStatus(req.user, id, estado));
 }
 
 // NEW FEATURE: elimina agendamento.
 export async function remove(req, res) {
-  const id = parsePositiveId(req.params.id, "id_agendamento");
+  const id = parsePositiveId(req.params.id, "id");
   await removeSchedule(req.user, id);
   return res.json({ message: "Agendamento eliminado" });
 }

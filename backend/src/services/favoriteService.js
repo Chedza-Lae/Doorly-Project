@@ -15,7 +15,7 @@ export function getFavorites(user) {
 export async function addServiceFavorite(user, serviceId) {
   const service = await findActiveService(serviceId);
   if (!service) {
-    throw createHttpError(404, "Servico não encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   const inserted = await addFavorite(user.id, serviceId);

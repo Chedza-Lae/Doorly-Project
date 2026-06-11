@@ -8,7 +8,7 @@ import {
   remove
 } from "../controllers/historyController.js";
 
-// NEW FEATURE: routes completas de historico de servicos.
+// NEW FEATURE: routes completas de histórico de serviços.
 const router = express.Router();
 
 router.use(verifyToken);

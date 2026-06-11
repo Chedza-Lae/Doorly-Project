@@ -7,23 +7,23 @@ import {
 } from "./commonValidators.js";
 
 // NEW FEATURE: estados suportados por agendamentos.
-export const scheduleStates = ["pendente", "aceite", "recusado", "concluido"];
+export const scheduleStates = ["pendente", "aceite", "rejeitado", "concluido", "cancelado"];
 
-// NEW FEATURE: valida criacao/edicao de agendamento.
+// NEW FEATURE: valida criação/edição de agendamento.
 export function validateSchedulePayload(body, { partial = false } = {}) {
   const payload = {};
 
-  if (!partial || body.id_servico != null) {
-    payload.id_servico = parsePositiveId(body.id_servico, "id_servico");
+  if (!partial || body.servico_id != null || body.id_servico != null) {
+    payload.servico_id = parsePositiveId(body.servico_id ?? body.id_servico, "servico_id");
   }
-  if (!partial || body.data_agendamento != null || body.data != null) {
-    payload.data_agendamento = validateDate(body.data_agendamento ?? body.data, "data_agendamento");
+  if (!partial || body.data_agendada != null || body.data_agendamento != null || body.data != null) {
+    payload.data_agendada = validateDate(body.data_agendada ?? body.data_agendamento ?? body.data, "data_agendada");
   }
   if (!partial || body.hora_inicio != null || body.hora_fim != null) {
     Object.assign(payload, validateTimeRange(body.hora_inicio, body.hora_fim));
   }
 
-  payload.notas = optionalString(body.notas);
+  payload.descricao = optionalString(body.descricao ?? body.notas);
   return payload;
 }
 

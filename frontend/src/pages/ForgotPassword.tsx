@@ -17,7 +17,7 @@ export default function ForgotPassword() {
     setMessage("");
 
     try {
-      await api.forgotPassword(email);
+      await api.forgotPassword(email.trim());
 
       setMessage(
         "Enviámos um link de recuperação para o teu email."
@@ -87,6 +87,7 @@ export default function ForgotPassword() {
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder="teuemail@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

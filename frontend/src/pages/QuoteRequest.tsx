@@ -7,7 +7,7 @@ import { api, getUser } from "../lib/api";
 import type { ApiService } from "../lib/api";
 import { euro } from "../lib/money";
 
-const PERIODS = ["Manha", "Tarde", "Noite", "Flexivel"];
+const PERIODS = ["Manhã", "Tarde", "Noite", "Flexível"];
 const URGENCY = ["Normal", "Esta semana", "Urgente"];
 
 export default function QuoteRequest() {
@@ -24,7 +24,7 @@ export default function QuoteRequest() {
   const [details, setDetails] = useState("");
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
-  const [period, setPeriod] = useState("Flexivel");
+  const [period, setPeriod] = useState("Flexível");
   const [budget, setBudget] = useState("");
   const [contact, setContact] = useState("");
   const [urgency, setUrgency] = useState("Normal");
@@ -36,7 +36,7 @@ export default function QuoteRequest() {
     }
 
     if (!serviceId || Number.isNaN(serviceId)) {
-      setErr("Servico invalido.");
+      setErr("Serviço inválido.");
       setLoading(false);
       return;
     }
@@ -47,7 +47,7 @@ export default function QuoteRequest() {
         setService(data);
         setLocation(data.localizacao || "");
       } catch (e: unknown) {
-        setErr(e instanceof Error ? e.message : "Erro ao carregar servico");
+        setErr(e instanceof Error ? e.message : "Erro ao carregar serviço");
       } finally {
         setLoading(false);
       }
@@ -64,7 +64,7 @@ export default function QuoteRequest() {
     }
 
     if (!service) {
-      setErr("Servico indisponivel.");
+      setErr("Serviço indisponível.");
       return;
     }
 
@@ -82,7 +82,7 @@ export default function QuoteRequest() {
       });
       navigate(`/messages/thread?service_id=${service.id_servico}&other_id=${result.other_id}`);
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Erro ao enviar pedido de orcamento");
+      setErr(e instanceof Error ? e.message : "Erro ao enviar contraproposta");
     } finally {
       setSending(false);
     }
@@ -109,9 +109,9 @@ export default function QuoteRequest() {
                 <MessageSquareText className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Pedido de orcamento</p>
+                <p className="text-sm text-gray-500">Contraproposta</p>
                 <h1 className="text-3xl text-[#0B1B46]">
-                  {loading ? "A carregar..." : service?.titulo || "Novo pedido"}
+                  {loading ? "A carregar..." : service?.titulo || "Nova contraproposta"}
                 </h1>
                 {service && (
                   <p className="text-sm text-gray-600 mt-1">
@@ -130,14 +130,14 @@ export default function QuoteRequest() {
                   required
                   value={details}
                   onChange={(e) => setDetails(e.target.value)}
-                  placeholder="Ex.: preciso de pintar uma sala de 20m2, com pequenas reparacoes na parede..."
+                  placeholder="Ex.: preciso de pintar uma sala de 20m2, com pequenas reparações na parede..."
                   className="w-full min-h-40 border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="block">
-                  <span className="block text-sm text-gray-700 mb-2">Localizacao</span>
+                  <span className="block text-sm text-gray-700 mb-2">Localização</span>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
@@ -163,7 +163,7 @@ export default function QuoteRequest() {
                 </label>
 
                 <label className="block">
-                  <span className="block text-sm text-gray-700 mb-2">Periodo</span>
+                  <span className="block text-sm text-gray-700 mb-2">Período</span>
                   <select
                     value={period}
                     onChange={(e) => setPeriod(e.target.value)}
@@ -178,7 +178,7 @@ export default function QuoteRequest() {
                 </label>
 
                 <label className="block">
-                  <span className="block text-sm text-gray-700 mb-2">Orcamento aproximado</span>
+                  <span className="block text-sm text-gray-700 mb-2">Contraproposta aproximada</span>
                   <div className="relative">
                     <Euro className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
@@ -205,7 +205,7 @@ export default function QuoteRequest() {
                 </label>
 
                 <label className="block">
-                  <span className="block text-sm text-gray-700 mb-2">Urgencia</span>
+                  <span className="block text-sm text-gray-700 mb-2">Urgência</span>
                   <select
                     value={urgency}
                     onChange={(e) => setUrgency(e.target.value)}
@@ -232,7 +232,7 @@ export default function QuoteRequest() {
                 className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-[#0B1B46] text-white rounded-xl hover:bg-[#1E3A8A] transition-colors disabled:opacity-60"
               >
                 <Send className="w-4 h-4" />
-                {sending ? "A enviar..." : "Enviar pedido"}
+                {sending ? "A enviar..." : "Enviar contraproposta"}
               </button>
             </form>
           </section>
@@ -240,7 +240,7 @@ export default function QuoteRequest() {
           <aside className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-fit">
             <p className="text-sm text-gray-500 mb-1">Resumo</p>
             <h2 className="text-xl text-[#0B1B46] mb-4">
-              {service?.titulo || "Servico"}
+              {service?.titulo || "Serviço"}
             </h2>
             <div className="space-y-3 text-sm text-gray-700">
               <div className="flex justify-between gap-4">
@@ -252,12 +252,12 @@ export default function QuoteRequest() {
                 <span className="text-gray-900 text-right">{service?.categoria || "-"}</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span>Preco base</span>
+                <span>Preço base</span>
                 <span className="text-gray-900 text-right">{service ? euro(service.preco) : "-"}</span>
               </div>
             </div>
             <div className="mt-6 pt-6 border-t border-gray-200 text-sm text-gray-600">
-              O pedido fica guardado no dashboard do prestador e tambem nas mensagens.
+              A contraproposta fica guardada no dashboard do prestador e também nas mensagens.
             </div>
           </aside>
         </div>

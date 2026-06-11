@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-// SUPABASE MIGRATION: lista avaliacoes por servico.
+// SUPABASE MIGRATION: lista avaliações por serviço.
 export async function listReviewsByService(serviceId) {
   const result = await pool.query(
     `SELECT
@@ -20,7 +20,7 @@ export async function listReviewsByService(serviceId) {
   return result.rows;
 }
 
-// SUPABASE MIGRATION: lista avaliacoes do prestador/admin.
+// SUPABASE MIGRATION: lista avaliações do prestador/admin.
 export async function listProviderReviews(user) {
   const params = [];
   let ownerClause = "";
@@ -50,7 +50,7 @@ export async function listProviderReviews(user) {
   return result.rows;
 }
 
-// SUPABASE MIGRATION: procura servico avaliado.
+// SUPABASE MIGRATION: procura serviço avaliado.
 export async function findReviewService(serviceId) {
   const result = await pool.query(
     "SELECT id_servico, id_prestador FROM servicos WHERE id_servico = $1",
@@ -59,7 +59,7 @@ export async function findReviewService(serviceId) {
   return result.rows[0] || null;
 }
 
-// NEW FEATURE: impede avaliacao duplicada por cliente/servico.
+// NEW FEATURE: impede avaliação duplicada por cliente/serviço.
 export async function findReviewByClient(serviceId, clientId) {
   const result = await pool.query(
     "SELECT id_avaliacao FROM avaliacoes WHERE id_servico = $1 AND id_cliente = $2",
@@ -68,7 +68,7 @@ export async function findReviewByClient(serviceId, clientId) {
   return result.rows[0] || null;
 }
 
-// SUPABASE MIGRATION: cria avaliacao com RETURNING.
+// SUPABASE MIGRATION: cria avaliação com RETURNING.
 export async function createReview({ id_servico, id_cliente, nota, comentario }) {
   const result = await pool.query(
     `INSERT INTO avaliacoes (id_servico, id_cliente, nota, comentario)
@@ -79,7 +79,7 @@ export async function createReview({ id_servico, id_cliente, nota, comentario })
   return result.rows[0];
 }
 
-// SUPABASE MIGRATION: resumo de avaliacoes com rows.
+// SUPABASE MIGRATION: resumo de avaliações com rows.
 export async function getReviewSummary(serviceId) {
   const result = await pool.query(
     "SELECT COALESCE(AVG(nota), 0) AS rating, COUNT(*) AS total_avaliacoes FROM avaliacoes WHERE id_servico = $1",

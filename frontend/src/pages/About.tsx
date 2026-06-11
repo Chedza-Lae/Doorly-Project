@@ -79,7 +79,7 @@ export default function About() {
 
       {/* Hero */}
       <section
-        className="relative py-32 px-6 bg-cover bg-center"
+        className="relative bg-cover bg-center px-4 py-20 sm:px-6 md:py-32"
         style={{
           backgroundImage:
             "url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80')"
@@ -93,13 +93,13 @@ export default function About() {
             <span className="text-sm">Sobre a Doorly</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
+          <h1 className="mb-6 text-4xl font-bold leading-tight sm:text-5xl md:text-7xl">
             Construímos confiança.
             <br />
             Ligamos soluções.
           </h1>
 
-          <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
+          <p className="mx-auto max-w-3xl text-base leading-relaxed text-gray-200 sm:text-xl">
             A Doorly é uma plataforma digital criada para transformar a forma
             como clientes encontram profissionais qualificados, de forma rápida,
             segura e eficiente.
@@ -108,9 +108,9 @@ export default function About() {
       </section>
 
       {/* Quem somos */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20">
         <div className="grid md:grid-cols-2 gap-10">
-          <div className="bg-white rounded-3xl p-10 shadow-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-sm sm:p-10">
             <Building2 className="w-12 h-12 text-[#1E3A8A] mb-6" />
             <h2 className="text-3xl font-bold text-[#0B1B46] mb-4">
               Quem Somos
@@ -123,7 +123,7 @@ export default function About() {
             </p>
           </div>
 
-          <div className="bg-white rounded-3xl p-10 shadow-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-sm sm:p-10">
             <Compass className="w-12 h-12 text-[#1E3A8A] mb-6" />
             <h2 className="text-3xl font-bold text-[#0B1B46] mb-4">
               A Nossa Direção
@@ -138,9 +138,9 @@ export default function About() {
       </section>
 
       {/* Missão e visão */}
-      <section className="bg-white py-20 px-6">
+      <section className="bg-white px-4 py-14 sm:px-6 md:py-20">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10">
-          <div className="border rounded-3xl p-10 shadow-sm">
+          <div className="border rounded-3xl p-6 shadow-sm sm:p-10">
             <Rocket className="w-12 h-12 text-[#1E3A8A] mb-6" />
             <h2 className="text-3xl font-bold text-[#0B1B46] mb-4">
               Missão
@@ -152,7 +152,7 @@ export default function About() {
             </p>
           </div>
 
-          <div className="border rounded-3xl p-10 shadow-sm">
+          <div className="border rounded-3xl p-6 shadow-sm sm:p-10">
             <Globe className="w-12 h-12 text-[#1E3A8A] mb-6" />
             <h2 className="text-3xl font-bold text-[#0B1B46] mb-4">
               Visão
@@ -167,8 +167,8 @@ export default function About() {
       </section>
 
       {/* Valores */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
-        <h2 className="text-4xl font-bold text-center text-[#0B1B46] mb-14">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-20">
+        <h2 className="mb-10 text-center text-3xl font-bold text-[#0B1B46] sm:text-4xl md:mb-14">
           Os Nossos Valores
         </h2>
 
@@ -197,9 +197,9 @@ export default function About() {
       </section>
 
       {/* Jornada */}
-      <section className="bg-white py-20 px-6">
+      <section className="bg-white px-4 py-14 sm:px-6 md:py-20">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-[#0B1B46] mb-14">
+          <h2 className="mb-10 text-center text-3xl font-bold text-[#0B1B46] sm:text-4xl md:mb-14">
             A Nossa Jornada
           </h2>
 
@@ -210,9 +210,9 @@ export default function About() {
               return (
                 <div
                   key={index}
-                  className="bg-[#F9FAFB] rounded-3xl p-8 border border-gray-100"
+                  className="rounded-3xl border border-gray-100 bg-[#F9FAFB] p-5 sm:p-8"
                 >
-                  <div className="flex items-start gap-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
                     <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
                       <Icon className="w-7 h-7 text-[#1E3A8A]" />
                     </div>
@@ -235,8 +235,8 @@ export default function About() {
       </section>
 
       {/* Final */}
-      <section className="max-w-5xl mx-auto px-6 py-20 text-center">
-        <h2 className="text-4xl font-bold text-[#0B1B46] mb-6">
+      <section className="mx-auto max-w-5xl px-4 py-14 text-center sm:px-6 md:py-20">
+        <h2 className="mb-6 text-3xl font-bold text-[#0B1B46] sm:text-4xl">
           Construímos o futuro dos serviços digitais
         </h2>
 

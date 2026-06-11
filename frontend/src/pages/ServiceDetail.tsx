@@ -1,6 +1,6 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Star, MapPin, Heart, Phone, Mail, Clock, ShieldCheck, MessageSquare } from "lucide-react";
+import { Star, MapPin, Heart, Phone, Mail, Clock, ShieldCheck, MessageSquare, CalendarCheck } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
@@ -46,7 +46,7 @@ export default function ServiceDetail() {
         if (userId) {
           const favs = await getFavorites();
 
-          // Compara com a lista real da BD para iniciar o coracao no estado certo.
+          // Compara com a lista real da BD para iniciar o coração no estado certo.
           const exists = favs.some((favorite) => favorite.id_servico === Number(id));
 
           setIsFavorite(exists);
@@ -78,7 +78,7 @@ export default function ServiceDetail() {
       setFavoriteLoading(true);
 
       try {
-        // Grava a alteracao na BD e reverte a UI se a API falhar.
+        // Grava a alteração na BD e reverte a UI se a API falhar.
         if (nextFavorite) {
           await addFavorite(serviceId);
         } else {
@@ -127,9 +127,9 @@ export default function ServiceDetail() {
       );
       setReviewComment("");
       setReviewScore(5);
-      setReviewNotice("Avaliacao guardada. Obrigado pelo feedback.");
+      setReviewNotice("Avaliação guardada. Obrigado pelo feedback.");
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Erro ao guardar avaliacao");
+      setErr(e instanceof Error ? e.message : "Erro ao guardar avaliação");
     } finally {
       setReviewSaving(false);
     }
@@ -145,8 +145,8 @@ export default function ServiceDetail() {
     if (cat.includes("canal")) return ["Diagnóstico rápido", "Reparação de fugas", "Substituição de peças", "Urgências"];
     if (cat.includes("eletric")) return ["Instalação e manutenção", "Quadros elétricos", "Segurança e testes", "Intervenção rápida"];
     if (cat.includes("jardin")) return ["Manutenção regular", "Corte e poda", "Limpeza de espaço", "Planeamento"];
-    if (cat.includes("pint")) return ["Interior/Exterior", "Materiais recomendados", "Acabamentos", "Orçamento rápido"];
-    return ["Orçamento rápido", "Atendimento profissional", "Agendamento flexível", "Serviço personalizado"];
+    if (cat.includes("pint")) return ["Interior/Exterior", "Materiais recomendados", "Acabamentos", "Contraproposta rápida"];
+    return ["Contraproposta rápida", "Atendimento profissional", "Agendamento flexível", "Serviço personalizado"];
   }, [service?.categoria]);
 
   if (loading) {
@@ -199,7 +199,14 @@ export default function ServiceDetail() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Imagem principal */}
         <div className="relative h-80 md:h-96 rounded-3xl overflow-hidden mb-8 shadow-sm">
-          <img src={image} alt={service.titulo} className="w-full h-full object-cover" />
+          <img
+            src={image}
+            alt={service.titulo}
+            className="w-full h-full object-cover"
+            onError={(event) => {
+              event.currentTarget.src = FALLBACK_IMAGE;
+            }}
+          />
           <div className="absolute inset-0 bg-linear-to-t from-black/35 via-black/10 to-transparent" />
 
           <button
@@ -220,7 +227,7 @@ export default function ServiceDetail() {
           <div className="absolute bottom-4 left-4 right-4">
             <div className="inline-flex items-center gap-2 bg-white/90 px-3 py-1 rounded-full text-sm text-[#0B1B46]">
               <ShieldCheck className="w-4 h-4" />
-              Dados reais do servico e avaliacoes de clientes
+              Dados reais do serviço e avaliações de clientes
             </div>
           </div>
         </div>
@@ -273,14 +280,14 @@ export default function ServiceDetail() {
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <div className="mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div>
-                  <h2 className="text-xl text-gray-900">Avaliacoes</h2>
+                  <h2 className="text-xl text-gray-900">Avaliações</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Comentarios de clientes que usaram ou contactaram este servico.
+                    Comentarios de clientes que usaram ou contactaram este serviço.
                   </p>
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1 text-sm text-gray-800">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  {rating.toFixed(1)} media
+                  {rating.toFixed(1)} média
                 </div>
               </div>
 
@@ -317,7 +324,7 @@ export default function ServiceDetail() {
                     value={reviewComment}
                     onChange={(event) => setReviewComment(event.target.value)}
                     className="min-h-24 w-full resize-y rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-[#3B82F6]"
-                    placeholder="Conta como correu o servico, o que correu bem e o que podia ser melhor."
+                    placeholder="Conta como correu o serviço, o que correu bem e o que podia ser melhor."
                     required
                   />
 
@@ -327,18 +334,18 @@ export default function ServiceDetail() {
                     className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-[#0B1B46] px-4 py-2 text-sm text-white hover:bg-[#1E3A8A] disabled:opacity-60"
                   >
                     <MessageSquare className="w-4 h-4" />
-                    {reviewSaving ? "A guardar..." : "Publicar avaliacao"}
+                    {reviewSaving ? "A guardar..." : "Publicar avaliação"}
                   </button>
                 </form>
               ) : (
                 <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
-                  {user ? "Apenas clientes podem avaliar servicos." : "Entra como cliente para avaliar e comentar."}
+                  {user ? "Apenas clientes podem avaliar serviços." : "Entra como cliente para avaliar e comentar."}
                 </div>
               )}
 
               {reviews.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-300 p-5 text-gray-600">
-                  Ainda nao ha avaliacoes para este servico.
+                  Ainda não há avaliações para este serviço.
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -368,13 +375,13 @@ export default function ServiceDetail() {
               <h2 className="text-xl text-gray-900 mb-4">Prestador</h2>
 
               {/* para protótipo, link opcional */}
-              <div className="flex items-start gap-4 p-4 border border-gray-200 rounded-2xl">
-                <div className="w-14 h-14 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center font-semibold">
+              <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 sm:flex-row sm:items-start">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 font-semibold text-[#1E3A8A]">
                   {providerName.slice(0, 1).toUpperCase()}
                 </div>
 
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-gray-900">{providerName}</h3>
                     <span className="text-xs bg-blue-50 text-[#1E3A8A] px-2 py-0.5 rounded-full">
                       Verificado (protótipo)
@@ -387,7 +394,7 @@ export default function ServiceDetail() {
 
                 <Link
                   to="/services"
-                  className="px-4 py-2 bg-[#0B1B46] text-white rounded-xl hover:bg-[#1E3A8A] transition-colors text-sm"
+                  className="inline-flex justify-center rounded-xl bg-[#0B1B46] px-4 py-2 text-sm text-white transition-colors hover:bg-[#1E3A8A] sm:shrink-0"
                 >
                   Ver mais serviços
                 </Link>
@@ -415,11 +422,21 @@ export default function ServiceDetail() {
               </div>
 
               <div className="space-y-3">
+                {user?.tipo !== "prestador" && user?.tipo !== "admin" && (
+                  <button
+                    onClick={() => navigate(`/booking/new?service_id=${service.id_servico}`)}
+                    className="w-full flex items-center justify-center gap-2 bg-[#0B1B46] text-white py-3 rounded-xl hover:bg-[#1E3A8A] transition-colors shadow-sm"
+                  >
+                    <CalendarCheck className="w-5 h-5" />
+                    Agendar serviço
+                  </button>
+                )}
+
                 <button
                   onClick={() => navigate(`/quote/new?service_id=${service.id_servico}`)}
-                  className="w-full bg-[#0B1B46] text-white py-3 rounded-xl hover:bg-[#1E3A8A] transition-colors shadow-sm"
+                  className="w-full border border-[#0B1B46] text-[#0B1B46] py-3 rounded-xl hover:bg-blue-50 transition-colors"
                 >
-                  Pedir orçamento
+                  Pedir contraproposta
                 </button>
                 
                 <button
@@ -457,7 +474,7 @@ export default function ServiceDetail() {
                     <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-green-600" />
                     </div>
-                    <span>Avaliacoes guardadas na base de dados</span>
+                    <span>Avaliações guardadas na base de dados</span>
                   </div>
                 </div>
               </div>

@@ -23,7 +23,7 @@ router.delete("/users/:id", asyncHandler(removeUser));
 router.put("/users/:id/reset-password", asyncHandler(resetPassword));
 router.put("/users/:id/ban", asyncHandler(ban));
 router.put("/users/:id/unban", asyncHandler(unban));
-// NEW FEATURE: alterar permissoes.
+// NEW FEATURE: alterar permissões.
 router.patch("/users/:id/role", asyncHandler(role));
 router.get("/services", asyncHandler(services));
 router.delete("/services/:id", asyncHandler(removeService));

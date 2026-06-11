@@ -10,7 +10,7 @@ import servicosRoutes from "./routes/servicos.js";
 import messagesRoutes from "./routes/message.js";
 import adminRoutes from "./routes/admin.js";
 import favoritesRoutes from "./routes/favorites.js";
-import orcamentosRoutes from "./routes/orcamentos.js";
+import propostasRoutes from "./routes/propostas.js";
 import avaliacoesRoutes from "./routes/avaliacoes.js";
 import historicoRoutes from "./routes/historico.js";
 import agendamentosRoutes from "./routes/agendamentos.js";
@@ -35,13 +35,13 @@ app.use("/api/servicos", servicosRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/favorites", favoritesRoutes);
-app.use("/api/orcamentos", orcamentosRoutes);
+app.use("/api/propostas", propostasRoutes);
 app.use("/api/avaliacoes", avaliacoesRoutes);
 // NEW FEATURE: novas rotas completas.
 app.use("/api/historico", historicoRoutes);
 app.use("/api/agendamentos", agendamentosRoutes);
 
-// CLEAN ARCHITECTURE: health check simples para monitorizacao.
+// CLEAN ARCHITECTURE: health check simples para monitorização.
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "Backend Doorly a correr!" });
 });

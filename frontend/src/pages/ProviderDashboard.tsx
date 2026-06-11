@@ -88,7 +88,7 @@ function isActive(service: ApiService) {
   return service.ativo === true || service.ativo === 1;
 }
 
-export default function ProviderProfile() {
+export default function ProviderDashboard() {
   const navigate = useNavigate();
   const user = getUser();
 
@@ -253,9 +253,9 @@ export default function ProviderProfile() {
       setQuotes((current) =>
         current.map((item) => item.id_orcamento === quote.id_orcamento ? { ...item, estado } : item)
       );
-      setNotice("Estado do pedido atualizado.");
+      setNotice("Estado da contraproposta atualizado.");
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Erro ao atualizar pedido");
+      setErr(e instanceof Error ? e.message : "Erro ao atualizar contraproposta");
     }
   }
 
@@ -280,7 +280,7 @@ export default function ProviderProfile() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div>
-            <p className="text-sm font-medium text-[#1E3A8A] mb-2">Perfil do prestador</p>
+            <p className="text-sm font-medium text-[#1E3A8A] mb-2">Área do prestador</p>
             <h1 className="text-3xl md:text-4xl font-bold text-[#0B1B46]">Dashboard</h1>
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-[#1E3A8A] font-semibold">
@@ -305,9 +305,9 @@ export default function ProviderProfile() {
           <Stat label="Serviços" value={stats.total} icon={<BriefcaseBusiness className="w-5 h-5" />} />
           <Stat label="Ativos" value={stats.active} icon={<CheckCircle2 className="w-5 h-5" />} />
           <Stat label="Inativos" value={stats.inactive} icon={<Power className="w-5 h-5" />} />
-          <Stat label="Pedidos" value={stats.requests} icon={<MessageSquare className="w-5 h-5" />} />
+          <Stat label="Contrapropostas" value={stats.requests} icon={<MessageSquare className="w-5 h-5" />} />
           <Stat label="Visualizações" value={stats.views} icon={<Eye className="w-5 h-5" />} />
-          <Stat label="Avaliacao media" value={stats.averageRating.toFixed(1)} icon={<Star className="w-5 h-5" />} />
+          <Stat label="Avaliação média" value={stats.averageRating.toFixed(1)} icon={<Star className="w-5 h-5" />} />
         </section>
 
         {err && (
@@ -327,23 +327,23 @@ export default function ProviderProfile() {
         <section className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Pedidos de orçamento</h2>
-              <p className="text-sm text-gray-500 mt-1">Pedidos recebidos pelos teus serviços.</p>
+              <h2 className="text-xl font-semibold text-gray-900">Contrapropostas</h2>
+              <p className="text-sm text-gray-500 mt-1">Contrapropostas recebidas pelos teus serviços.</p>
             </div>
             <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm text-[#1E3A8A]">
               <MessageSquare className="w-4 h-4" />
-              {quotes.length} pedidos
+              {quotes.length} contrapropostas
             </span>
           </div>
 
           {loading ? (
             <div className="text-gray-600">
               <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
-              A carregar pedidos...
+              A carregar contrapropostas...
             </div>
           ) : quotes.length === 0 ? (
             <div className="rounded-lg border border-dashed border-gray-300 p-5 text-gray-600">
-              Ainda não recebeste pedidos de orçamento.
+              Ainda não recebeste contrapropostas.
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -525,6 +525,16 @@ export default function ProviderProfile() {
                     onChange={(event) => setForm((current) => ({ ...current, imagem_url: event.target.value }))}
                     className={fieldClass}
                   />
+                  <div className="mt-3 h-32 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                    <img
+                      src={form.imagem_url || FALLBACK_IMAGE}
+                      alt="Pré-visualização do serviço"
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.src = FALLBACK_IMAGE;
+                      }}
+                    />
+                  </div>
                 </Field>
 
                 <label className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-3 text-sm text-gray-700">
@@ -618,8 +628,8 @@ function QuoteCard({
           <CalendarDays className="w-4 h-4" />
           {quote.data_preferida ? new Date(quote.data_preferida).toLocaleDateString() : "A combinar"}
         </span>
-        <span>Urgencia: {quote.urgencia || "Normal"}</span>
-        <span>{quote.orcamento_estimado ? euro(quote.orcamento_estimado) : "Orçamento a combinar"}</span>
+        <span>Urgência: {quote.urgencia || "Normal"}</span>
+        <span>{quote.orcamento_estimado ? euro(quote.orcamento_estimado) : "Contraproposta a combinar"}</span>
       </div>
     </article>
   );
@@ -644,7 +654,14 @@ function ServiceRow({
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative h-36 md:h-28 md:w-40 shrink-0 overflow-hidden rounded-lg bg-gray-100">
           {service.imagem_url ? (
-            <img src={service.imagem_url} alt={service.titulo} className="h-full w-full object-cover" />
+            <img
+              src={service.imagem_url}
+              alt={service.titulo}
+              className="h-full w-full object-cover"
+              onError={(event) => {
+                event.currentTarget.src = FALLBACK_IMAGE;
+              }}
+            />
           ) : (
             <>
               <img src={FALLBACK_IMAGE} alt="" className="h-full w-full object-cover opacity-30" />

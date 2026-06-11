@@ -5,6 +5,7 @@ import {
   findScheduleById,
   findScheduleConflict,
   findServiceForSchedule,
+  listAllSchedules,
   listClientSchedules,
   listProviderSchedules,
   updateSchedule,
@@ -13,38 +14,42 @@ import {
 
 function assertCanAccessSchedule(user, schedule) {
   if (!schedule) {
-    throw createHttpError(404, "Agendamento nao encontrado");
+    throw createHttpError(404, "Agendamento não encontrado");
   }
 
   if (
     user.tipo !== "admin" &&
-    Number(schedule.id_cliente) !== Number(user.id) &&
-    Number(schedule.id_prestador) !== Number(user.id)
+    Number(schedule.cliente_id ?? schedule.id_cliente) !== Number(user.id) &&
+    Number(schedule.prestador_id ?? schedule.id_prestador) !== Number(user.id)
   ) {
-    throw createHttpError(403, "Sem permissao para este agendamento");
+    throw createHttpError(403, "Sem permissão para este agendamento");
   }
 }
 
 // NEW FEATURE: cria agendamento validando conflito.
 export async function createServiceSchedule(user, payload) {
-  const service = await findServiceForSchedule(payload.id_servico);
+  if (user.tipo !== "cliente") {
+    throw createHttpError(403, "Apenas clientes podem criar agendamentos");
+  }
+
+  const service = await findServiceForSchedule(payload.servico_id);
   if (!service) {
-    throw createHttpError(404, "Servico nao encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   if (Number(service.id_prestador) === Number(user.id)) {
-    throw createHttpError(400, "Nao podes agendar o teu proprio servico");
+    throw createHttpError(400, "Não podes agendar o teu próprio serviço");
   }
 
   const conflict = await findScheduleConflict({
     id_prestador: service.id_prestador,
-    data_agendamento: payload.data_agendamento,
+    data_agendada: payload.data_agendada,
     hora_inicio: payload.hora_inicio,
     hora_fim: payload.hora_fim
   });
 
   if (conflict) {
-    throw createHttpError(409, "Ja existe um agendamento nesse horario");
+    throw createHttpError(409, "Já existe um agendamento nesse horário");
   }
 
   return createSchedule({
@@ -56,6 +61,14 @@ export async function createServiceSchedule(user, payload) {
 
 // NEW FEATURE: agendamentos do cliente.
 export function getMySchedules(user) {
+  if (user.tipo === "prestador") {
+    return listProviderSchedules(user);
+  }
+
+  if (user.tipo === "admin") {
+    return listAllSchedules();
+  }
+
   return listClientSchedules(user.id);
 }
 
@@ -67,21 +80,21 @@ export function getProviderSchedules(user) {
   return listProviderSchedules(user);
 }
 
-// NEW FEATURE: edita agendamento com permissao e conflito.
+// NEW FEATURE: edita agendamento com permissão e conflito.
 export async function editSchedule(user, scheduleId, payload) {
   const schedule = await findScheduleById(scheduleId);
   assertCanAccessSchedule(user, schedule);
 
   const conflict = await findScheduleConflict({
-    id_prestador: schedule.id_prestador,
-    data_agendamento: payload.data_agendamento,
+    id_prestador: schedule.prestador_id ?? schedule.id_prestador,
+    data_agendada: payload.data_agendada,
     hora_inicio: payload.hora_inicio,
     hora_fim: payload.hora_fim,
     ignoreId: scheduleId
   });
 
   if (conflict) {
-    throw createHttpError(409, "Ja existe um agendamento nesse horario");
+    throw createHttpError(409, "Já existe um agendamento nesse horário");
   }
 
   return updateSchedule(scheduleId, payload);
@@ -90,22 +103,24 @@ export async function editSchedule(user, scheduleId, payload) {
 // NEW FEATURE: atualiza estado do agendamento.
 export async function changeScheduleStatus(user, scheduleId, estado) {
   const schedule = await findScheduleById(scheduleId);
-  assertCanAccessSchedule(user, schedule);
+  if (!schedule) {
+    throw createHttpError(404, "Agendamento não encontrado");
+  }
 
-  if (user.tipo === "cliente" && !["pendente", "recusado"].includes(estado)) {
-    throw createHttpError(403, "Cliente so pode cancelar ou repor pendencia");
+  if (user.tipo !== "prestador" || Number(schedule.prestador_id) !== Number(user.id)) {
+    throw createHttpError(403, "Apenas o prestador dono do agendamento pode alterar o estado");
   }
 
   return updateScheduleStatus(scheduleId, estado);
 }
 
-// NEW FEATURE: elimina agendamento com permissao.
+// NEW FEATURE: elimina agendamento com permissão.
 export async function removeSchedule(user, scheduleId) {
   const schedule = await findScheduleById(scheduleId);
   assertCanAccessSchedule(user, schedule);
 
   const rowCount = await deleteSchedule(scheduleId);
   if (rowCount === 0) {
-    throw createHttpError(404, "Agendamento nao encontrado");
+    throw createHttpError(404, "Agendamento não encontrado");
   }
 }

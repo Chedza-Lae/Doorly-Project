@@ -1,27 +1,50 @@
 import jwt from "jsonwebtoken";
+import { findUserById } from "../repositories/userRepository.js";
+import { getUserAccessError } from "../utils/userAccess.js";
 
-// CLEAN ARCHITECTURE: middleware JWT com resposta de erro consistente.
-export function verifyToken(req, res, next) {
+// CLEAN ARCHITECTURE: valida JWT e bloqueia contas desativadas/banidas mesmo com tokens antigos.
+export async function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ success: false, message: "Token nao fornecido" });
+    return res.status(401).json({ success: false, message: "Token não fornecido" });
   }
 
   const token = authHeader.split(" ")[1];
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    return res.status(500).json({ success: false, message: "JWT_SECRET não configurado" });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, secret);
+  } catch {
+    return res.status(401).json({ success: false, message: "Token inválido" });
+  }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await findUserById(decoded.id);
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Utilizador não encontrado" });
+    }
+
+    const accessError = getUserAccessError(user);
+    if (accessError) {
+      return res.status(403).json({ success: false, message: accessError });
+    }
+
     req.user = {
-      id: decoded.id,
-      id_utilizador: decoded.id,
-      tipo: decoded.tipo,
-      email: decoded.email
+      id: user.id_utilizador,
+      id_utilizador: user.id_utilizador,
+      tipo: user.tipo,
+      email: user.email
     };
 
     next();
   } catch (err) {
-    return res.status(401).json({ success: false, message: "Token invalido" });
+    next(err);
   }
 }
 

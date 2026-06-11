@@ -7,7 +7,7 @@ import {
   provider
 } from "../controllers/reviewController.js";
 
-// CLEAN ARCHITECTURE: routes de avaliacoes sem queries diretas.
+// CLEAN ARCHITECTURE: routes de avaliações sem queries diretas.
 const router = express.Router();
 
 router.get("/service/:id", asyncHandler(byService));

@@ -36,7 +36,7 @@ export default function Login() {
 
       navigate("/services");
     } catch (e: unknown) {
-      // Evita `any` e mostra uma mensagem segura quando o erro nao e um Error.
+      // Evita `any` e mostra uma mensagem segura quando o erro não é um Error.
       setErr(e instanceof Error ? e.message : "Falha no login");
     } finally {
       setLoading(false);

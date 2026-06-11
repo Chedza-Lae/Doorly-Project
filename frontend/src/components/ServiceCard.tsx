@@ -3,6 +3,9 @@ import { Star, MapPin, Heart } from 'lucide-react';
 import { type MouseEvent, useEffect, useState } from 'react';
 import { addFavorite, getUser, removeFavorite } from '../lib/api';
 
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1527515545081-5db817172677?auto=format&fit=crop&w=1200&q=80";
+
 interface ServiceCardProps {
   id: string;
   image: string;
@@ -53,7 +56,7 @@ export default function ServiceCard({
     setFavoriteLoading(true);
 
     try {
-      // Grava/remova na BD antes de avisar a pagina mae sobre o novo estado.
+      // Grava/remova na BD antes de avisar a página mãe sobre o novo estado.
       if (nextFavorite) {
         await addFavorite(serviceId);
       } else {
@@ -76,6 +79,9 @@ export default function ServiceCard({
           <img
             src={image}
             alt={title}
+            onError={(event) => {
+              event.currentTarget.src = FALLBACK_IMAGE;
+            }}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
           <button

@@ -12,7 +12,7 @@ import {
   update
 } from "../controllers/serviceController.js";
 
-// CLEAN ARCHITECTURE: routes de servicos sem queries diretas.
+// CLEAN ARCHITECTURE: routes de serviços sem queries diretas.
 const router = express.Router();
 
 router.get("/", asyncHandler(list));

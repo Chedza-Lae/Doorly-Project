@@ -1,6 +1,6 @@
 import { optionalString, parsePositiveId } from "./commonValidators.js";
 
-// NEW FEATURE: valida criacao de historico.
+// NEW FEATURE: valida criação de histórico.
 export function validateHistoryPayload(body) {
   return {
     id_servico: parsePositiveId(body.id_servico, "id_servico"),

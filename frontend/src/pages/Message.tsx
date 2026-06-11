@@ -26,7 +26,7 @@ export default function NewMessage() {
     }
 
     if (!serviceId || Number.isNaN(serviceId)) {
-      setErr("Servico invalido.");
+      setErr("Serviço inválido.");
       setPageLoading(false);
       return;
     }
@@ -36,7 +36,7 @@ export default function NewMessage() {
         const data = await api.getService(serviceId);
         setService(data);
       } catch (e: unknown) {
-        setErr(e instanceof Error ? e.message : "Erro ao carregar servico");
+        setErr(e instanceof Error ? e.message : "Erro ao carregar serviço");
       } finally {
         setPageLoading(false);
       }
@@ -47,7 +47,7 @@ export default function NewMessage() {
     setErr(null);
 
     if (!serviceId || Number.isNaN(serviceId)) {
-      setErr("Servico invalido.");
+      setErr("Serviço inválido.");
       return;
     }
 
@@ -104,7 +104,7 @@ export default function NewMessage() {
             className="w-full min-h-40 border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Ola! Tenho interesse no teu servico..."
+            placeholder="Ola! Tenho interesse no teu serviço..."
           />
 
           {err && (

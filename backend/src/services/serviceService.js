@@ -18,20 +18,20 @@ import { createAdminLog } from "../repositories/adminLogRepository.js";
 
 function assertCanManageService(service, user) {
   if (!service) {
-    throw createHttpError(404, "Servico nao encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   if (user.tipo !== "admin" && Number(service.id_prestador) !== Number(user.id)) {
-    throw createHttpError(403, "Sem permissao para gerir este servico");
+    throw createHttpError(403, "Sem permissão para gerir este serviço");
   }
 }
 
-// CLEAN ARCHITECTURE: lista publica de servicos.
+// CLEAN ARCHITECTURE: lista publica de serviços.
 export function getPublicServices(query) {
   return listPublicServices(query);
 }
 
-// CLEAN ARCHITECTURE: lista servicos do prestador.
+// CLEAN ARCHITECTURE: lista serviços do prestador.
 export function getProviderServices(user) {
   if (user.tipo !== "prestador" && user.tipo !== "admin") {
     throw createHttpError(403, "Acesso apenas para prestadores");
@@ -39,21 +39,21 @@ export function getProviderServices(user) {
   return listProviderServices(user);
 }
 
-// SUPABASE MIGRATION: incrementa estatisticas antes de devolver detalhe.
+// SUPABASE MIGRATION: incrementa estatísticas antes de devolver detalhe.
 export async function getServiceDetails(id) {
   const service = await findServiceById(id);
   if (!service) {
-    throw createHttpError(404, "Servico nao encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   await incrementViews(id);
   return findDetailedServiceById(id);
 }
 
-// CLEAN ARCHITECTURE: cria servico e estatisticas na mesma transaction.
+// CLEAN ARCHITECTURE: cria serviço e estatísticas na mesma transaction.
 export async function createProviderService(user, payload, explicitProviderId = null) {
   if (user.tipo !== "prestador" && user.tipo !== "admin") {
-    throw createHttpError(403, "Apenas prestadores podem criar servicos");
+    throw createHttpError(403, "Apenas prestadores podem criar serviços");
   }
 
   const id_prestador = user.tipo === "admin" && explicitProviderId ? explicitProviderId : user.id;
@@ -77,7 +77,7 @@ export async function createDevService(payload) {
   return findDetailedServiceById(created.id_servico);
 }
 
-// CLEAN ARCHITECTURE: update completo com permissao.
+// CLEAN ARCHITECTURE: update completo com permissão.
 export async function updateProviderService(id, user, payload) {
   const service = await findServiceById(id);
   assertCanManageService(service, user);
@@ -86,7 +86,7 @@ export async function updateProviderService(id, user, payload) {
   return findDetailedServiceById(id);
 }
 
-// CLEAN ARCHITECTURE: patch parcial com permissao.
+// CLEAN ARCHITECTURE: patch parcial com permissão.
 export async function patchProviderService(id, user, payload) {
   const service = await findServiceById(id);
   assertCanManageService(service, user);
@@ -102,12 +102,12 @@ export async function deleteProviderService(id, user) {
   await withTransaction(async (client) => {
     await deleteServiceCascade(id, client);
     if (user.tipo === "admin") {
-      // NEW FEATURE: admin log automatico ao eliminar servico.
+      // NEW FEATURE: admin log automático ao eliminar serviço.
       await createAdminLog({
         admin_id: user.id,
         action: "DELETE_SERVICE",
         target_user_id: service.id_prestador,
-        details: `Servico eliminado: ${id}`
+        details: `Serviço eliminado: ${id}`
       }, client);
     }
   });

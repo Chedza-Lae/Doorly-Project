@@ -47,7 +47,7 @@ export async function reset(req, res) {
   return res.json({ message: "Password alterada com sucesso" });
 }
 
-// NEW FEATURE: refresh token quando o cliente ja esta autenticado.
+// NEW FEATURE: refresh token quando o cliente já está autenticado.
 export async function refresh(req, res) {
   return res.json(refreshAuthToken(req.user));
 }

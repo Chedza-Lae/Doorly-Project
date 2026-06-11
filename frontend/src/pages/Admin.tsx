@@ -10,7 +10,6 @@ import {
   KeyRound,
   X,
   UsersRound,
-  Mail,
 } from "lucide-react";
 
 type SelectedUser = {
@@ -31,6 +30,7 @@ export default function Admin() {
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [isResetOpen, setIsResetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SelectedUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -44,6 +44,7 @@ export default function Admin() {
     try {
       setLoading(true);
       setErr(null);
+      setNotice(null);
 
       const [usersData, servicesData] = await Promise.all([
         api.adminUsers(),
@@ -61,7 +62,7 @@ export default function Admin() {
 
   async function deleteService(id: number) {
     const confirmDelete = confirm(
-      "Tens a certeza que queres eliminar este servico?"
+      "Tens a certeza que queres eliminar este serviço?"
     );
 
     if (!confirmDelete) return;
@@ -69,8 +70,9 @@ export default function Admin() {
     try {
       await api.adminDeleteService(id);
       await loadAdminData();
+      setNotice("Serviço eliminado com sucesso.");
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Erro ao eliminar servico");
+      setErr(e instanceof Error ? e.message : "Erro ao eliminar serviço");
     }
   }
 
@@ -84,6 +86,7 @@ export default function Admin() {
     try {
       await api.adminDeleteUser(user.id);
       await loadAdminData();
+      setNotice("Utilizador eliminado com sucesso.");
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao eliminar utilizador");
     }
@@ -92,25 +95,25 @@ export default function Admin() {
   async function resetPassword() {
     if (!selectedUser) return;
 
-    if (newPassword.length < 6) {
-      alert("A password deve ter pelo menos 6 caracteres.");
+    if (newPassword.length < 8) {
+      setErr("A password deve ter pelo menos 8 caracteres.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("As passwords não coincidem.");
+      setErr("As passwords não coincidem.");
       return;
     }
 
     try {
       await api.adminResetPassword(selectedUser.id, newPassword);
 
-      alert("Password alterada com sucesso.");
-
+      setNotice("Password alterada com sucesso.");
+      setErr(null);
       setIsResetOpen(false);
       setSelectedUser(null);
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : "Erro ao alterar password");
+      setErr(e instanceof Error ? e.message : "Erro ao alterar password");
     }
   }
 
@@ -119,8 +122,9 @@ export default function Admin() {
     try {
       await api.adminBanUser(id, reason || "Violação dos termos");
       await loadAdminData();
-    } catch (e) {
-      setErr("Erro ao banir utilizador");
+      setNotice("Utilizador banido com sucesso.");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao banir utilizador");
     }
   }
 
@@ -128,8 +132,9 @@ export default function Admin() {
     try {
       await api.adminUnbanUser(id);
       await loadAdminData();
-    } catch (e) {
-      setErr("Erro ao reativar utilizador");
+      setNotice("Utilizador reativado com sucesso.");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao reativar utilizador");
     }
   }
 
@@ -147,6 +152,19 @@ export default function Admin() {
 
   const providers = useMemo(
     () => users.filter((user) => user.tipo === "prestador"),
+    [users]
+  );
+
+  const allUsers = useMemo(
+    () =>
+      [...users].sort((a, b) => {
+        const typeOrder = { admin: 0, prestador: 1, cliente: 2 };
+        const aOrder = typeOrder[a.tipo as keyof typeof typeOrder] ?? 3;
+        const bOrder = typeOrder[b.tipo as keyof typeof typeOrder] ?? 3;
+
+        if (aOrder !== bOrder) return aOrder - bOrder;
+        return a.nome.localeCompare(b.nome);
+      }),
     [users]
   );
 
@@ -207,16 +225,23 @@ export default function Admin() {
           </div>
         )}
 
+        {notice && (
+          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl">
+            {notice}
+          </div>
+        )}
+
         {loading ? (
           <div className="bg-white rounded-3xl shadow-sm p-8 text-gray-500">
             A carregar dados administrativos...
           </div>
         ) : (
           <div className="space-y-8">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <SummaryCard label="Utilizadores" value={users.length} />
               <SummaryCard label="Clientes" value={clients.length} />
               <SummaryCard label="Prestadores" value={providerGroups.length} />
-              <SummaryCard label="Servicos" value={services.length} />
+              <SummaryCard label="Serviços" value={services.length} />
             </div>
 
             <section className="bg-white rounded-3xl shadow-md border border-gray-100 p-6 sm:p-8">
@@ -228,23 +253,23 @@ export default function Admin() {
 
                   <div>
                     <h2 className="text-xl font-semibold text-[#0B1B46]">
-                      Clientes registados
+                      Utilizadores registados
                     </h2>
 
                     <p className="text-sm text-gray-500">
-                      {clients.length} cliente(s) no site
+                      Clientes, prestadores e administradores numa só lista
                     </p>
                   </div>
                 </div>
               </div>
 
-              {clients.length === 0 ? (
+              {allUsers.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-gray-500">
-                  Não existem clientes registados.
+                  Não existem utilizadores registados.
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {clients.map((client) => (
+                  {allUsers.map((client) => (
                     <UserRow
                       key={client.id}
                       user={client}
@@ -352,10 +377,10 @@ export default function Admin() {
                             <button
                               type="button"
                               onClick={() => deleteService(service.id)}
-                              className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-red-500 hover:bg-red-50 transition"
+                              className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-[#0B1B46] transition"
                             >
                               <Trash2 className="w-5 h-5" />
-                              Eliminar
+                              Remover
                             </button>
                           </div>
                         ))}
@@ -451,48 +476,61 @@ function UserRow({
   onUnban: () => void;
 }) {
   const isBanned = user.status === "banido";
+  const typeLabel =
+    user.tipo === "prestador" ? "Prestador" : user.tipo === "admin" ? "Admin" : "Cliente";
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p className="font-medium">{user.nome}</p>
-        <p className="text-sm text-gray-500">{user.email}</p>
-
-        <span
-          className={`text-xs px-2 py-1 rounded mt-2 inline-block ${
-            isBanned ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
-          }`}
-        >
-          {isBanned ? "BANIDO" : "ATIVO"}
-        </span>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-medium text-[#0B1B46]">{user.nome}</p>
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-[#1E3A8A]">
+            {typeLabel}
+          </span>
+          <span
+            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+              isBanned ? "bg-gray-200 text-gray-700" : "bg-green-100 text-green-700"
+            }`}
+          >
+            {isBanned ? "Suspenso" : "Ativo"}
+          </span>
+        </div>
+        <p className="mt-1 truncate text-sm text-gray-500">{user.email}</p>
       </div>
 
-      <div className="flex gap-2">
-        <button onClick={onReset} className="px-3 py-2 bg-white border rounded-xl">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+        <button
+          type="button"
+          onClick={onReset}
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-[#1E3A8A] transition hover:bg-blue-50"
+        >
           Password
         </button>
 
         {!isBanned ? (
           <button
+            type="button"
             onClick={onBan}
-            className="px-3 py-2 bg-red-500 text-white rounded-xl"
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
           >
-            Banir
+            Suspender
           </button>
         ) : (
           <button
+            type="button"
             onClick={onUnban}
-            className="px-3 py-2 bg-green-500 text-white rounded-xl"
+            className="rounded-xl bg-[#1E3A8A] px-3 py-2 text-sm text-white transition hover:bg-[#3B82F6]"
           >
-            Desbanir
+            Reativar
           </button>
         )}
 
         <button
+          type="button"
           onClick={onDelete}
-          className="px-3 py-2 bg-black text-white rounded-xl"
+          className="rounded-xl bg-[#0B1B46] px-3 py-2 text-sm text-white transition hover:bg-[#1E3A8A]"
         >
-          Eliminar
+          Remover
         </button>
       </div>
     </div>

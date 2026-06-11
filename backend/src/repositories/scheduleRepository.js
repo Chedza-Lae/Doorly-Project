@@ -1,19 +1,31 @@
 import pool from "../config/db.js";
 
-// NEW FEATURE: joins de agendamentos para cliente, prestador e servico.
+// NEW FEATURE: resposta normalizada para frontend sem expor dados sensiveis.
 const scheduleSelect = `
   SELECT
-    a.*,
+    a.id,
+    a.cliente_id,
+    a.prestador_id,
+    a.servico_id,
+    a.data_agendada,
+    a.hora_inicio,
+    a.hora_fim,
+    a.estado,
+    a.descricao,
+    a.observacoes_prestador,
+    a.created_at,
+    a.updated_at,
     c.nome AS nome_cliente,
     p.nome AS nome_prestador,
+    s.titulo AS nome_servico,
     s.titulo AS titulo_servico
   FROM agendamentos a
-  JOIN utilizadores c ON c.id_utilizador = a.id_cliente
-  JOIN utilizadores p ON p.id_utilizador = a.id_prestador
-  JOIN servicos s ON s.id_servico = a.id_servico
+  JOIN utilizadores c ON c.id_utilizador = a.cliente_id
+  JOIN utilizadores p ON p.id_utilizador = a.prestador_id
+  JOIN servicos s ON s.id_servico = a.servico_id
 `;
 
-// NEW FEATURE: servico ativo para agendamento.
+// NEW FEATURE: serviço ativo para descobrir o prestador do agendamento.
 export async function findServiceForSchedule(serviceId) {
   const result = await pool.query(
     "SELECT id_servico, id_prestador FROM servicos WHERE id_servico = $1 AND ativo = true",
@@ -22,21 +34,21 @@ export async function findServiceForSchedule(serviceId) {
   return result.rows[0] || null;
 }
 
-// NEW FEATURE: valida conflito de horario por prestador/dia/sobreposicao.
-export async function findScheduleConflict({ id_prestador, data_agendamento, hora_inicio, hora_fim, ignoreId = null }) {
-  const params = [id_prestador, data_agendamento, hora_inicio, hora_fim];
+// NEW FEATURE: valida conflito de horário por prestador/dia/sobreposição.
+export async function findScheduleConflict({ id_prestador, data_agendada, hora_inicio, hora_fim, ignoreId = null }) {
+  const params = [id_prestador, data_agendada, hora_inicio, hora_fim];
   let ignoreClause = "";
 
   if (ignoreId) {
     params.push(ignoreId);
-    ignoreClause = `AND id_agendamento <> $${params.length}`;
+    ignoreClause = `AND id <> $${params.length}`;
   }
 
   const result = await pool.query(
-    `SELECT id_agendamento
+    `SELECT id
      FROM agendamentos
-     WHERE id_prestador = $1
-       AND data_agendamento = $2
+     WHERE prestador_id = $1
+       AND data_agendada = $2
        AND estado IN ('pendente', 'aceite')
        AND hora_inicio < $4
        AND hora_fim > $3
@@ -47,52 +59,61 @@ export async function findScheduleConflict({ id_prestador, data_agendamento, hor
   return result.rows[0] || null;
 }
 
-// NEW FEATURE: cria agendamento.
+// NEW FEATURE: cria agendamento com estado inicial pendente.
 export async function createSchedule(payload) {
   const result = await pool.query(
     `INSERT INTO agendamentos
-       (id_servico, id_cliente, id_prestador, data_agendamento, hora_inicio, hora_fim, estado, notas)
+       (servico_id, cliente_id, prestador_id, data_agendada, hora_inicio, hora_fim, estado, descricao)
      VALUES ($1, $2, $3, $4, $5, $6, 'pendente', $7)
-     RETURNING *`,
+     RETURNING id`,
     [
-      payload.id_servico,
+      payload.servico_id,
       payload.id_cliente,
       payload.id_prestador,
-      payload.data_agendamento,
+      payload.data_agendada,
       payload.hora_inicio,
       payload.hora_fim,
-      payload.notas
+      payload.descricao
     ]
   );
-  return result.rows[0];
+  return findScheduleById(result.rows[0].id);
 }
 
 // NEW FEATURE: agendamentos do cliente.
 export async function listClientSchedules(userId) {
   const result = await pool.query(
     `${scheduleSelect}
-     WHERE a.id_cliente = $1
-     ORDER BY a.data_agendamento DESC, a.hora_inicio DESC, a.id_agendamento DESC`,
+     WHERE a.cliente_id = $1
+     ORDER BY a.data_agendada DESC, a.hora_inicio DESC, a.id DESC`,
     [userId]
   );
   return result.rows;
 }
 
-// NEW FEATURE: agendamentos do prestador/admin.
+// NEW FEATURE: agendamentos do prestador autenticado/admin.
 export async function listProviderSchedules(user) {
   const params = [];
   let where = "";
 
   if (user.tipo !== "admin") {
-    where = "WHERE a.id_prestador = $1";
+    where = "WHERE a.prestador_id = $1";
     params.push(user.id);
   }
 
   const result = await pool.query(
     `${scheduleSelect}
      ${where}
-     ORDER BY a.data_agendamento DESC, a.hora_inicio DESC, a.id_agendamento DESC`,
+     ORDER BY a.data_agendada DESC, a.hora_inicio DESC, a.id DESC`,
     params
+  );
+  return result.rows;
+}
+
+// NEW FEATURE: listagem admin.
+export async function listAllSchedules() {
+  const result = await pool.query(
+    `${scheduleSelect}
+     ORDER BY a.data_agendada DESC, a.hora_inicio DESC, a.id DESC`
   );
   return result.rows;
 }
@@ -101,49 +122,55 @@ export async function listProviderSchedules(user) {
 export async function findScheduleById(scheduleId) {
   const result = await pool.query(
     `${scheduleSelect}
-     WHERE a.id_agendamento = $1`,
+     WHERE a.id = $1`,
     [scheduleId]
   );
   return result.rows[0] || null;
 }
 
-// NEW FEATURE: edita agendamento.
+// NEW FEATURE: edita agendamento mantendo o dono.
 export async function updateSchedule(scheduleId, payload) {
   const result = await pool.query(
     `UPDATE agendamentos
-     SET data_agendamento = $1,
+     SET data_agendada = $1,
          hora_inicio = $2,
          hora_fim = $3,
-         notas = $4
-     WHERE id_agendamento = $5
-     RETURNING *`,
+         descricao = $4,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = $5
+     RETURNING id`,
     [
-      payload.data_agendamento,
+      payload.data_agendada,
       payload.hora_inicio,
       payload.hora_fim,
-      payload.notas,
+      payload.descricao,
       scheduleId
     ]
   );
-  return result.rows[0] || null;
+
+  if (!result.rows[0]) return null;
+  return findScheduleById(result.rows[0].id);
 }
 
-// NEW FEATURE: atualiza estado de agendamento.
+// NEW FEATURE: prestador atualiza estado de agendamento.
 export async function updateScheduleStatus(scheduleId, estado) {
   const result = await pool.query(
     `UPDATE agendamentos
-     SET estado = $1
-     WHERE id_agendamento = $2
-     RETURNING *`,
+     SET estado = $1,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = $2
+     RETURNING id`,
     [estado, scheduleId]
   );
-  return result.rows[0] || null;
+
+  if (!result.rows[0]) return null;
+  return findScheduleById(result.rows[0].id);
 }
 
 // NEW FEATURE: elimina agendamento.
 export async function deleteSchedule(scheduleId) {
   const result = await pool.query(
-    "DELETE FROM agendamentos WHERE id_agendamento = $1",
+    "DELETE FROM agendamentos WHERE id = $1",
     [scheduleId]
   );
   return result.rowCount;

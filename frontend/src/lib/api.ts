@@ -2,7 +2,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 export type LoginResponse = {
   token: string;
-  user: { id?: number; id_utilizador?: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" };
+  user: ApiUser;
 };
 
 export type ApiService = {
@@ -78,6 +78,9 @@ export type AdminUserRow = {
   email: string;
   tipo: "cliente" | "prestador" | "admin" | string;
   status: "ativo" | "banido" | string;
+  ativo?: boolean;
+  ban_reason?: string | null;
+  ban_until?: string | null;
 };
 
 type AdminUserApiRow = Omit<AdminUserRow, "id"> & {
@@ -122,7 +125,66 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export type StoredUser = {
-  id: number; nome: string; email: string; tipo: "cliente" | "prestador" | "admin" 
+  id: number;
+  id_utilizador?: number;
+  nome: string;
+  email: string;
+  tipo: "cliente" | "prestador" | "admin";
+  foto_perfil?: string | null;
+  telefone?: string | null;
+  localizacao?: string | null;
+  profissao?: string | null;
+  descricao?: string | null;
+};
+
+export type ApiUser = StoredUser & {
+  ativo?: boolean;
+  status?: string;
+  data_registo?: string;
+  updated_at?: string;
+};
+
+export type UpdateMePayload = {
+  nome: string;
+  telefone?: string | null;
+  localizacao?: string | null;
+  profissao?: string | null;
+  descricao?: string | null;
+  foto_perfil?: string | null;
+};
+
+export type UpdatePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type BookingStatus = "pendente" | "aceite" | "rejeitado" | "concluido" | "cancelado";
+
+export type Booking = {
+  id: number;
+  cliente_id: number;
+  prestador_id: number;
+  servico_id: number;
+  data_agendada: string;
+  hora_inicio: string;
+  hora_fim?: string | null;
+  estado: BookingStatus;
+  descricao?: string | null;
+  observacoes_prestador?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  nome_servico?: string;
+  titulo_servico?: string;
+  nome_cliente?: string;
+  nome_prestador?: string;
+};
+
+export type CreateBookingPayload = {
+  servico_id: number;
+  data_agendada: string;
+  hora_inicio: string;
+  hora_fim?: string | null;
+  descricao?: string | null;
 };
 
 export type QuoteRequestPayload = {
@@ -182,7 +244,7 @@ export const api = {
   register: (nome: string, email: string, password: string, tipo: "cliente" | "prestador") =>
     request<{ message: string }>("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ nome, email, password, tipo }),
+      body: JSON.stringify({ nome, email, password, tipo, acceptedTerms: true, acceptedPrivacy: true }),
     }),
 
   forgotPassword: (email: string) =>
@@ -197,13 +259,37 @@ export const api = {
     body: JSON.stringify({ password })
   }),
 
-  me: () => request<StoredUser>("/api/users/me"),
+  getMe: () => request<ApiUser>("/api/users/me"),
 
-  updateMe: (payload: { nome: string; email: string; currentPassword?: string; newPassword?: string }) =>
-    request<StoredUser>("/api/users/me", {
+  me: () => request<ApiUser>("/api/users/me"),
+
+  updateMe: (payload: UpdateMePayload) =>
+    request<ApiUser>("/api/users/me", {
       method: "PUT",
       body: JSON.stringify(payload),
     }),
+
+  updatePassword: (payload: UpdatePasswordPayload) =>
+    request<{ message: string }>("/api/users/password", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+
+  getMyBookings: () => request<Booking[]>("/api/agendamentos/me"),
+
+  createBooking: (payload: CreateBookingPayload) =>
+    request<Booking>("/api/agendamentos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  updateBookingStatus: (id: number, estado: BookingStatus) =>
+    request<Booking>(`/api/agendamentos/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ estado }),
+    }),
+
+  getCustomerHistory: () => request<Booking[]>("/api/agendamentos/me"),
   
   // services
   listServices: async (q?: string): Promise<ApiService[]> => {
@@ -272,15 +358,15 @@ export const api = {
     }),
 
   createQuote: (payload: QuoteRequestPayload) =>
-    request<{ message: string; id_orcamento: number; other_id: number }>("/api/orcamentos", {
+    request<{ message: string; id_orcamento: number; other_id: number }>("/api/propostas", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
 
-  providerQuotes: () => request<ProviderQuote[]>("/api/orcamentos/provider"),
+  providerQuotes: () => request<ProviderQuote[]>("/api/propostas/provider"),
 
   updateQuoteStatus: (id: number, estado: ProviderQuote["estado"]) =>
-    request<{ message: string }>(`/api/orcamentos/${id}/status`, {
+    request<{ message: string }>(`/api/propostas/${id}/status`, {
       method: "PATCH",
       body: JSON.stringify({ estado }),
     }),
@@ -314,36 +400,16 @@ export const api = {
     body: JSON.stringify({ password })
   }),
 
-  adminBanUser: async (id: number, reason: string) => {
-    const res = await fetch(`${API_BASE}/admin/users/${id}/ban`, {
+  adminBanUser: (id: number, reason: string) =>
+    request<{ message: string }>(`/api/admin/users/${id}/ban`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
       body: JSON.stringify({ reason }),
-    });
+    }),
 
-    if (!res.ok) {
-      throw new Error("Erro ao banir utilizador");
-    }
-    return res.json();
-  },
-
-  adminUnbanUser: async (id: number) => {
-    const res = await fetch(`${API_BASE}/admin/users/${id}/unban`, {
+  adminUnbanUser: (id: number) =>
+    request<{ message: string }>(`/api/admin/users/${id}/unban`, {
       method: "PUT",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error("Erro ao reativar utilizador");
-    }
-
-    return res.json();
-  },
+    }),
 };
 
 export async function getFavorites(): Promise<ApiService[]> {
@@ -352,7 +418,7 @@ export async function getFavorites(): Promise<ApiService[]> {
 }
 
 export async function addFavorite(serviceId: number) {
-  // Enviamos so o id_servico; o id_cliente nunca deve vir do localStorage/body.
+  // Enviamos só o id_servico; o id_cliente nunca deve vir do localStorage/body.
   return request<{ success: boolean }>("/api/favorites", {
     method: "POST",
     body: JSON.stringify({
@@ -362,7 +428,7 @@ export async function addFavorite(serviceId: number) {
 }
 
 export async function removeFavorite(serviceId: number) {
-  // Mantem o payload pequeno e deixa o backend proteger a remocao pelo token.
+  // Mantém o payload pequeno e deixa o backend proteger a remoção pelo token.
   return request<{ success: boolean }>("/api/favorites", {
     method: "DELETE",
     body: JSON.stringify({
@@ -372,19 +438,9 @@ export async function removeFavorite(serviceId: number) {
 }
 
 export async function adminBanUser(id: number, reason?: string) {
-  const res = await fetch(`/admin/users/${id}/ban`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-
-  if (!res.ok) throw new Error("Erro ao banir utilizador");
+  return api.adminBanUser(id, reason || "Violação dos termos");
 }
 
 export async function adminUnbanUser(id: number) {
-  const res = await fetch(`/admin/users/${id}/unban`, {
-    method: "PUT",
-  });
-
-  if (!res.ok) throw new Error("Erro ao reativar utilizador");
+  return api.adminUnbanUser(id);
 }

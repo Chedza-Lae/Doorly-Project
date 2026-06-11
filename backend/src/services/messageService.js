@@ -10,12 +10,12 @@ import {
 export async function sendInitialMessage(user, payload) {
   const service = await findMessageService(payload.id_servico);
   if (!service) {
-    throw createHttpError(404, "Servico nao encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   const id_destinatario = service.id_prestador;
   if (Number(id_destinatario) === Number(user.id)) {
-    throw createHttpError(400, "Nao podes enviar mensagem para ti mesmo");
+    throw createHttpError(400, "Não podes enviar mensagem para ti mesmo");
   }
 
   await createMessage({
@@ -41,12 +41,12 @@ export function getThread(user, payload) {
 // CLEAN ARCHITECTURE: resposta em thread.
 export async function replyToMessage(user, payload) {
   if (Number(payload.other_id) === Number(user.id)) {
-    throw createHttpError(400, "Nao podes responder para ti mesmo");
+    throw createHttpError(400, "Não podes responder para ti mesmo");
   }
 
   const service = await findMessageService(payload.id_servico);
   if (!service) {
-    throw createHttpError(404, "Servico nao encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   await createMessage({

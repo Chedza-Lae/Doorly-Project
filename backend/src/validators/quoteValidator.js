@@ -6,13 +6,13 @@ import {
   validateNonNegativeNumber
 } from "./commonValidators.js";
 
-// NEW FEATURE: estados novos pedidos para pedidos de orcamento.
+// NEW FEATURE: estados novos para contrapropostas.
 export const quoteStates = ["novo", "aceite", "rejeitado", "concluido"];
 
-// CLEAN ARCHITECTURE: estados antigos ainda aceites para nao quebrar o frontend existente.
+// CLEAN ARCHITECTURE: estados antigos ainda aceites para não quebrar o frontend existente.
 export const compatibleQuoteStates = [...quoteStates, "em_analise", "respondido", "fechado"];
 
-// CLEAN ARCHITECTURE: valida criacao/edicao de pedido de orcamento.
+// CLEAN ARCHITECTURE: valida criação/edição de contraproposta.
 export function validateQuotePayload(body, { partial = false } = {}) {
   const payload = {};
 
@@ -25,15 +25,15 @@ export function validateQuotePayload(body, { partial = false } = {}) {
 
   payload.localizacao = optionalString(body.localizacao);
   payload.data_preferida = optionalString(body.data_preferida);
-  payload.periodo = optionalString(body.periodo) || "Flexivel";
+  payload.periodo = optionalString(body.periodo) || "Flexível";
   payload.urgencia = optionalString(body.urgencia) || "Normal";
-  payload.orcamento_estimado = validateNonNegativeNumber(body.orcamento_estimado, "orcamento", { required: false });
+  payload.orcamento_estimado = validateNonNegativeNumber(body.orcamento_estimado, "contraproposta", { required: false });
   payload.contacto = optionalString(body.contacto);
 
   return payload;
 }
 
-// CLEAN ARCHITECTURE: valida estado do pedido.
+// CLEAN ARCHITECTURE: valida estado da contraproposta.
 export function validateQuoteStatus(body) {
   return validateEnum(body.estado, compatibleQuoteStates, "estado");
 }

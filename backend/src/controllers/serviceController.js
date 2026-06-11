@@ -19,12 +19,12 @@ export async function list(req, res) {
   return res.json(await getPublicServices({ q: req.query.q }));
 }
 
-// CLEAN ARCHITECTURE: servicos do prestador.
+// CLEAN ARCHITECTURE: serviços do prestador.
 export async function listMine(req, res) {
   return res.json(await getProviderServices(req.user));
 }
 
-// CLEAN ARCHITECTURE: cria servico.
+// CLEAN ARCHITECTURE: cria serviço.
 export async function create(req, res) {
   const payload = validateServicePayload(req.body);
   const explicitProviderId = req.body.id_prestador ? parsePositiveId(req.body.id_prestador, "id_prestador") : null;
@@ -39,7 +39,7 @@ export async function createDev(req, res) {
   return res.status(201).json(service);
 }
 
-// SUPABASE MIGRATION: detalhe com estatisticas.
+// SUPABASE MIGRATION: detalhe com estatísticas.
 export async function details(req, res) {
   const id = parsePositiveId(req.params.id);
   return res.json(await getServiceDetails(id));
@@ -66,5 +66,5 @@ export async function patch(req, res) {
 export async function remove(req, res) {
   const id = parsePositiveId(req.params.id);
   await deleteProviderService(id, req.user);
-  return res.json({ message: "Servico eliminado" });
+  return res.json({ message: "Serviço eliminado" });
 }

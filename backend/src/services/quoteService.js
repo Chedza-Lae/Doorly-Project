@@ -16,29 +16,33 @@ import {
 
 function buildQuoteMessage({ service, user, body }) {
   return [
-    "Pedido de orcamento",
+    "Contraproposta",
     "",
-    `Servico: ${service.titulo}`,
+    `Serviço: ${service.titulo}`,
     `Cliente: ${user.email}`,
     `Detalhes: ${body.detalhes}`,
-    `Localizacao: ${body.localizacao || "A combinar"}`,
+    `Localização: ${body.localizacao || "A combinar"}`,
     `Data preferida: ${body.data_preferida || "A combinar"}`,
-    `Periodo: ${body.periodo || "Flexivel"}`,
-    `Urgencia: ${body.urgencia || "Normal"}`,
-    `Orcamento aproximado: ${body.orcamento_estimado ? `${body.orcamento_estimado} EUR` : "A combinar"}`,
+    `Período: ${body.periodo || "Flexível"}`,
+    `Urgência: ${body.urgencia || "Normal"}`,
+    `Contraproposta aproximada: ${body.orcamento_estimado ? `${body.orcamento_estimado} EUR` : "A combinar"}`,
     `Contacto: ${body.contacto || user.email || "A combinar"}`
   ].join("\n");
 }
 
-// CLEAN ARCHITECTURE: cria pedido, mensagem e estatisticas numa transaction.
+// CLEAN ARCHITECTURE: cria contraproposta, mensagem e estatísticas numa transaction.
 export async function createBudgetRequest(user, payload) {
+  if (user.tipo !== "cliente") {
+    throw createHttpError(403, "Apenas clientes podem criar contrapropostas");
+  }
+
   const service = await findActiveQuoteService(payload.id_servico);
   if (!service) {
-    throw createHttpError(404, "Servico nao encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   if (Number(service.id_prestador) === Number(user.id)) {
-    throw createHttpError(400, "Nao podes pedir orcamento ao teu proprio servico");
+    throw createHttpError(400, "Não podes pedir contraproposta ao teu próprio serviço");
   }
 
   return withTransaction(async (client) => {
@@ -56,7 +60,7 @@ export async function createBudgetRequest(user, payload) {
       conteudo: buildQuoteMessage({ service, user, body: payload })
     }, client);
 
-    await linkQuoteMessage(quote.id_orcamento, message.idmensagens, client);
+    await linkQuoteMessage(quote.id_orcamento, message.id_mensagem, client);
     await incrementRequests(service.id_servico, client);
 
     return {
@@ -66,12 +70,12 @@ export async function createBudgetRequest(user, payload) {
   });
 }
 
-// NEW FEATURE: CRUD - pedidos do cliente.
+// NEW FEATURE: CRUD - contrapropostas do cliente.
 export function getMyQuotes(user) {
   return listClientQuotes(user.id);
 }
 
-// CLEAN ARCHITECTURE: pedidos do prestador/admin.
+// CLEAN ARCHITECTURE: contrapropostas do prestador/admin.
 export function getProviderQuotes(user) {
   if (user.tipo !== "prestador" && user.tipo !== "admin") {
     throw createHttpError(403, "Acesso apenas para prestadores");
@@ -79,46 +83,46 @@ export function getProviderQuotes(user) {
   return listProviderQuotes(user);
 }
 
-// NEW FEATURE: CRUD - detalhe com permissao.
+// NEW FEATURE: CRUD - detalhe com permissão.
 export async function getQuote(user, quoteId) {
   const quote = await findQuoteById(quoteId);
   if (!quote) {
-    throw createHttpError(404, "Pedido nao encontrado");
+    throw createHttpError(404, "Contraproposta não encontrada");
   }
 
   if (user.tipo !== "admin" && Number(quote.id_cliente) !== Number(user.id) && Number(quote.id_prestador) !== Number(user.id)) {
-    throw createHttpError(403, "Sem permissao para consultar este pedido");
+    throw createHttpError(403, "Sem permissão para consultar esta contraproposta");
   }
 
   return quote;
 }
 
-// NEW FEATURE: CRUD - editar pedido pelo cliente/admin.
+// NEW FEATURE: CRUD - editar contraproposta pelo cliente/admin.
 export async function editQuote(user, quoteId, payload) {
   const quote = await getQuote(user, quoteId);
   if (user.tipo !== "admin" && Number(quote.id_cliente) !== Number(user.id)) {
-    throw createHttpError(403, "Apenas o cliente pode editar este pedido");
+    throw createHttpError(403, "Apenas o cliente pode editar esta contraproposta");
   }
 
   const updated = await updateQuote(quoteId, payload);
   if (!updated) {
-    throw createHttpError(404, "Pedido nao encontrado");
+    throw createHttpError(404, "Contraproposta não encontrada");
   }
   return updated;
 }
 
-// NEW FEATURE: atualizacao de estado.
+// NEW FEATURE: atualização de estado.
 export async function changeQuoteStatus(user, quoteId, estado) {
   const rowCount = await updateQuoteStatus(quoteId, estado, user);
   if (rowCount === 0) {
-    throw createHttpError(404, "Pedido nao encontrado");
+    throw createHttpError(404, "Contraproposta não encontrada");
   }
 }
 
-// NEW FEATURE: CRUD - eliminar pedido.
+// NEW FEATURE: CRUD - eliminar contraproposta.
 export async function removeQuote(user, quoteId) {
   const rowCount = await deleteQuote(quoteId, user);
   if (rowCount === 0) {
-    throw createHttpError(404, "Pedido nao encontrado");
+    throw createHttpError(404, "Contraproposta não encontrada");
   }
 }

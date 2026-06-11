@@ -30,7 +30,7 @@ export default function Inbox() {
     <div className="min-h-screen bg-[#F3F4F6]">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <h1 className="text-3xl text-[#0B1B46] mb-8">
           As tuas mensagens
         </h1>
@@ -58,14 +58,14 @@ export default function Inbox() {
               }
               className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md cursor-pointer transition"
             >
-              <div className="flex justify-between">
-                <div>
+              <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <Briefcase className="w-5 h-5 text-[#1E3A8A]" />
-                    <h2 className="font-semibold">{m.titulo_servico}</h2>
+                    <h2 className="truncate font-semibold">{m.titulo_servico}</h2>
                   </div>
 
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
                     <MessageCircle className="w-4 h-4" />
                     {m.nome_interlocutor}
                     {m.id_remetente === user?.id && (
@@ -76,7 +76,7 @@ export default function Inbox() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <div className="flex shrink-0 items-center gap-2 text-sm text-gray-400">
                   <Clock3 className="w-4 h-4" />
                   {new Date(m.data_envio).toLocaleDateString()}
                 </div>

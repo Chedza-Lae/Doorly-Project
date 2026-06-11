@@ -48,7 +48,7 @@ export async function listPublicServices({ q } = {}) {
   return result.rows;
 }
 
-// SUPABASE MIGRATION: lista servicos do prestador/admin.
+// SUPABASE MIGRATION: lista serviços do prestador/admin.
 export async function listProviderServices(user) {
   const params = [];
   let where = "";
@@ -68,13 +68,13 @@ export async function listProviderServices(user) {
   return result.rows;
 }
 
-// SUPABASE MIGRATION: procura servico bruto.
+// SUPABASE MIGRATION: procura serviço bruto.
 export async function findServiceById(id, client = pool) {
   const result = await client.query("SELECT * FROM servicos WHERE id_servico = $1", [id]);
   return result.rows[0] || null;
 }
 
-// SUPABASE MIGRATION: detalhes de servico com joins.
+// SUPABASE MIGRATION: detalhes de serviço com joins.
 export async function findDetailedServiceById(id) {
   const result = await pool.query(
     `${detailedSelect}
@@ -157,20 +157,20 @@ export async function listAdminServices() {
   return result.rows;
 }
 
-// SUPABASE MIGRATION: apaga dependencias de servico numa transaction pg.
+// SUPABASE MIGRATION: apaga dependências de serviço numa transaction pg.
 export async function deleteServiceCascade(id, client = pool) {
   await client.query("DELETE FROM favoritos WHERE id_servico = $1", [id]);
   await client.query("DELETE FROM estatisticas WHERE id_servico = $1", [id]);
   await client.query("DELETE FROM avaliacoes WHERE id_servico = $1", [id]);
   await client.query("DELETE FROM mensagens WHERE id_servico = $1", [id]);
-  await client.query("DELETE FROM pedidos_orcamento WHERE id_servico = $1", [id]);
-  await client.query("DELETE FROM agendamentos WHERE id_servico = $1", [id]);
+  await client.query("DELETE FROM propostas WHERE id_servico = $1", [id]);
+  await client.query("DELETE FROM agendamentos WHERE servico_id = $1", [id]);
   await client.query("DELETE FROM historico_servicos WHERE id_servico = $1", [id]);
   const result = await client.query("DELETE FROM servicos WHERE id_servico = $1", [id]);
   return result.rowCount;
 }
 
-// SUPABASE MIGRATION: apaga servicos associados a um utilizador.
+// SUPABASE MIGRATION: apaga serviços associados a um utilizador.
 export async function deleteServicesByUser(userId, client = pool) {
   const result = await client.query(
     "DELETE FROM servicos WHERE id_prestador = $1",

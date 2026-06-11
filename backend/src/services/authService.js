@@ -10,6 +10,14 @@ import {
   setResetToken,
   updatePassword
 } from "../repositories/userRepository.js";
+import { getUserAccessError } from "../utils/userAccess.js";
+
+function getJwtSecret() {
+  if (!process.env.JWT_SECRET) {
+    throw createHttpError(500, "JWT_SECRET não configurado");
+  }
+  return process.env.JWT_SECRET;
+}
 
 // CLEAN ARCHITECTURE: service de registo com regras de negocio fora da rota.
 export async function registerUser(payload) {
@@ -29,8 +37,9 @@ export async function loginUser({ email, password }) {
     throw createHttpError(400, "Credenciais inválidas");
   }
 
-  if (user.status === "banido") {
-    throw createHttpError(403, "A tua conta foi banida");
+  const accessError = getUserAccessError(user);
+  if (accessError) {
+    throw createHttpError(403, accessError);
   }
 
   const isMatch = await bcrypt.compare(password, user.password_hash);
@@ -44,7 +53,7 @@ export async function loginUser({ email, password }) {
       tipo: user.tipo,
       email: user.email
     },
-    process.env.JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: "1d" }
   );
 
@@ -63,7 +72,7 @@ export async function loginUser({ email, password }) {
 export function refreshAuthToken(user) {
   const token = jwt.sign(
     { id: user.id, tipo: user.tipo, email: user.email },
-    process.env.JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: "1d" }
   );
   return { token };

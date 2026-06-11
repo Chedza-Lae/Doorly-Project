@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-// SUPABASE MIGRATION: transacoes PostgreSQL com BEGIN/COMMIT/ROLLBACK e client.release().
+// SUPABASE MIGRATION: transações PostgreSQL com BEGIN/COMMIT/ROLLBACK e client.release().
 export async function withTransaction(callback) {
   const client = await pool.connect();
 

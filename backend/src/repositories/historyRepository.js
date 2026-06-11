@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-// NEW FEATURE: joins do historico com nomes do cliente/prestador e titulo do servico.
+// NEW FEATURE: joins do histórico com nomes do cliente/prestador e título do serviço.
 const historySelect = `
   SELECT
     h.*,
@@ -13,7 +13,7 @@ const historySelect = `
   JOIN servicos s ON s.id_servico = h.id_servico
 `;
 
-// NEW FEATURE: historico do cliente autenticado.
+// NEW FEATURE: histórico do cliente autenticado.
 export async function listClientHistory(userId) {
   const result = await pool.query(
     `${historySelect}
@@ -24,7 +24,7 @@ export async function listClientHistory(userId) {
   return result.rows;
 }
 
-// NEW FEATURE: historico do prestador autenticado/admin.
+// NEW FEATURE: histórico do prestador autenticado/admin.
 export async function listProviderHistory(user) {
   const params = [];
   let where = "";
@@ -43,7 +43,7 @@ export async function listProviderHistory(user) {
   return result.rows;
 }
 
-// NEW FEATURE: procura servico para preencher prestador no historico.
+// NEW FEATURE: procura serviço para preencher prestador no histórico.
 export async function findServiceForHistory(serviceId) {
   const result = await pool.query(
     "SELECT id_servico, id_prestador FROM servicos WHERE id_servico = $1",
@@ -52,7 +52,7 @@ export async function findServiceForHistory(serviceId) {
   return result.rows[0] || null;
 }
 
-// NEW FEATURE: cria historico quando um servico e concluido.
+// NEW FEATURE: cria histórico quando um serviço é concluído.
 export async function createHistory(payload) {
   const result = await pool.query(
     `INSERT INTO historico_servicos
@@ -64,7 +64,7 @@ export async function createHistory(payload) {
   return result.rows[0];
 }
 
-// NEW FEATURE: delete admin-only de historico.
+// NEW FEATURE: delete admin-only de histórico.
 export async function deleteHistory(historyId) {
   const result = await pool.query(
     "DELETE FROM historico_servicos WHERE id_historico = $1",
