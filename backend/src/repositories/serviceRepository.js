@@ -165,7 +165,7 @@ export async function deleteServiceCascade(id, client = pool) {
   await client.query("DELETE FROM mensagens WHERE id_servico = $1", [id]);
   await client.query("DELETE FROM propostas WHERE id_servico = $1", [id]);
   await client.query("DELETE FROM agendamentos WHERE servico_id = $1", [id]);
-  await client.query("DELETE FROM historico_servicos WHERE id_servico = $1", [id]);
+  await client.query("DELETE FROM historico_servicos WHERE servico_id = $1", [id]);
   const result = await client.query("DELETE FROM servicos WHERE id_servico = $1", [id]);
   return result.rowCount;
 }

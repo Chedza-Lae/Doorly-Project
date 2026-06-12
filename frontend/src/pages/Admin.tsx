@@ -95,6 +95,9 @@ export default function Admin() {
   async function resetPassword() {
     if (!selectedUser) return;
 
+    setErr(null);
+    setNotice(null);
+
     if (newPassword.length < 8) {
       setErr("A password deve ter pelo menos 8 caracteres.");
       return;
@@ -112,6 +115,8 @@ export default function Admin() {
       setErr(null);
       setIsResetOpen(false);
       setSelectedUser(null);
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao alterar password");
     }
@@ -139,6 +144,8 @@ export default function Admin() {
   }
 
   function openResetModal(user: SelectedUser) {
+    setErr(null);
+    setNotice(null);
     setSelectedUser(user);
     setNewPassword("");
     setConfirmPassword("");

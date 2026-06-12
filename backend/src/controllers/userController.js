@@ -1,5 +1,5 @@
 import { validatePasswordPayload, validateProfilePayload } from "../validators/authValidator.js";
-import { getProfile, updateMyPassword, updateMyProfile } from "../services/userService.js";
+import { getProfile, updateMyPassword, updateMyProfile, updateMyProfilePhoto } from "../services/userService.js";
 
 // CLEAN ARCHITECTURE: perfil autenticado.
 export async function profile(req, res) {
@@ -15,6 +15,11 @@ export async function legacyProfile(req, res) {
 export async function updateMe(req, res) {
   const payload = validateProfilePayload(req.body);
   return res.json(await updateMyProfile(req.user.id, payload));
+}
+
+// CLEAN ARCHITECTURE: upload da fotografia do perfil autenticado.
+export async function updatePhoto(req, res) {
+  return res.json(await updateMyProfilePhoto(req.user.id, req.body));
 }
 
 // CLEAN ARCHITECTURE: alteração de password separada do perfil.

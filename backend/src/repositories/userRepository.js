@@ -84,12 +84,16 @@ export async function findUserByResetToken(token) {
 
 // SUPABASE MIGRATION: limpa reset token após alterar password.
 export async function updatePassword(userId, passwordHash) {
-  await pool.query(
+  const result = await pool.query(
     `UPDATE utilizadores
-     SET password_hash = $1, reset_token = NULL, reset_expires = NULL
+     SET password_hash = $1,
+         reset_token = NULL,
+         reset_expires = NULL,
+         updated_at = CURRENT_TIMESTAMP
      WHERE id_utilizador = $2`,
     [passwordHash, userId]
   );
+  return result.rowCount;
 }
 
 // SUPABASE MIGRATION: atualização apenas dos campos editáveis do próprio perfil.
@@ -120,6 +124,33 @@ export async function updateProfile(userId, { nome, telefone, localizacao, profi
        data_registo,
        updated_at`,
     [nome, telefone, localizacao, profissao, descricao, foto_perfil, userId]
+  );
+  return result.rows[0] || null;
+}
+
+// SUPABASE MIGRATION: atualiza apenas a fotografia de perfil.
+export async function updateProfilePhoto(userId, foto_perfil) {
+  const result = await pool.query(
+    `UPDATE utilizadores
+     SET foto_perfil = $1,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id_utilizador = $2
+     RETURNING
+       id_utilizador AS id,
+       id_utilizador,
+       nome,
+       email,
+       tipo,
+       foto_perfil,
+       telefone,
+       localizacao,
+       profissao,
+       descricao,
+       ativo,
+       status,
+       data_registo,
+       updated_at`,
+    [foto_perfil, userId]
   );
   return result.rows[0] || null;
 }

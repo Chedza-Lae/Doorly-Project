@@ -14,6 +14,7 @@ import propostasRoutes from "./routes/propostas.js";
 import avaliacoesRoutes from "./routes/avaliacoes.js";
 import historicoRoutes from "./routes/historico.js";
 import agendamentosRoutes from "./routes/agendamentos.js";
+import { getFrontendUrl } from "./config/frontend.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -24,9 +25,9 @@ const PORT = process.env.PORT || 3001;
 
 // CLEAN ARCHITECTURE: middleware global de parsing/CORS antes das rotas.
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173"
+  origin: getFrontendUrl()
 }));
-app.use(express.json());
+app.use(express.json({ limit: "4mb" }));
 
 // CLEAN ARCHITECTURE: routes ficam centralizadas no server.
 app.use("/api/auth", authRoutes);

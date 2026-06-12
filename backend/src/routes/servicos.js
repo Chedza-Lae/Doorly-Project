@@ -9,7 +9,8 @@ import {
   listMine,
   patch,
   remove,
-  update
+  update,
+  uploadImage
 } from "../controllers/serviceController.js";
 
 // CLEAN ARCHITECTURE: routes de serviços sem queries diretas.
@@ -17,6 +18,7 @@ const router = express.Router();
 
 router.get("/", asyncHandler(list));
 router.get("/me", verifyToken, asyncHandler(listMine));
+router.post("/image", verifyToken, asyncHandler(uploadImage));
 router.post("/", verifyToken, asyncHandler(create));
 router.post("/dev", asyncHandler(createDev));
 router.get("/:id", asyncHandler(details));

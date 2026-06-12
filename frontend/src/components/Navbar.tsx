@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import {
   CalendarDays,
+  Check,
   ChevronDown,
   Heart,
   History,
@@ -8,12 +9,14 @@ import {
   LogOut,
   Mail,
   Menu,
+  Palette,
   Shield,
   User,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { clearToken, getUser } from "../lib/api";
+import { themeOptions, useTheme, type ThemeName } from "../theme";
 
 type StoredUser = {
   id?: number;
@@ -40,6 +43,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const { theme, setTheme } = useTheme();
 
   const navigate = useNavigate();
   const user = getUser() as StoredUser | null;
@@ -196,6 +200,10 @@ export default function Navbar() {
                         ))}
                     </div>
 
+                    <div className="border-t border-gray-100 p-3">
+                      <ThemeSelector theme={theme} onThemeChange={setTheme} />
+                    </div>
+
                     <div className="border-t border-gray-100 p-2">
                       <button
                         type="button"
@@ -303,6 +311,10 @@ export default function Navbar() {
                     ))}
                 </div>
 
+                <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <ThemeSelector theme={theme} onThemeChange={setTheme} />
+                </div>
+
                 <button
                   type="button"
                   onClick={logout}
@@ -317,6 +329,86 @@ export default function Navbar() {
         </div>
       )}
     </nav>
+  );
+}
+
+function ThemeSelector({
+  theme,
+  onThemeChange,
+}: {
+  theme: ThemeName;
+  onThemeChange: (theme: ThemeName) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const currentTheme = themeOptions.find((option) => option.value === theme) ?? themeOptions[0];
+  const swatches: Record<ThemeName, string> = {
+    light: "linear-gradient(135deg, #ffffff 0%, #dbeafe 100%)",
+    dark: "linear-gradient(135deg, #111827 0%, #60a5fa 100%)",
+    midnight: "linear-gradient(135deg, #020617 0%, #38bdf8 100%)",
+    premium: "linear-gradient(135deg, #15110a 0%, #f2c94c 100%)",
+  };
+
+  function chooseTheme(selectedTheme: ThemeName) {
+    onThemeChange(selectedTheme);
+    setOpen(false);
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-[#1E3A8A]"
+        aria-expanded={open}
+        aria-haspopup="menu"
+      >
+        <Palette className="h-4 w-4 text-gray-500" />
+        <span className="font-medium">Tema</span>
+        <span className="ml-auto inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700">
+          <span
+            className="h-3 w-3 rounded-full border border-gray-200"
+            style={{ background: swatches[theme] }}
+            aria-hidden="true"
+          />
+          {currentTheme.label}
+        </span>
+        <ChevronDown
+          className="h-4 w-4 text-gray-500 transition-transform"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+        />
+      </button>
+
+      {open && (
+        <div className="mt-2 rounded-xl border border-gray-100 bg-gray-50 p-1" role="menu">
+          {themeOptions.map((option) => {
+            const isActive = option.value === theme;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => chooseTheme(option.value)}
+                className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
+                  isActive
+                    ? "bg-white font-medium text-[#1E3A8A] shadow-sm"
+                    : "text-gray-700 hover:bg-white hover:text-[#1E3A8A]"
+                }`}
+                role="menuitemradio"
+                aria-checked={isActive}
+              >
+                <span
+                  className="h-4 w-4 rounded-full border border-gray-200"
+                  style={{ background: swatches[option.value] }}
+                  aria-hidden="true"
+                />
+                <span>{option.label}</span>
+                {isActive && <Check className="ml-auto h-4 w-4" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 

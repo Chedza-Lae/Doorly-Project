@@ -11,7 +11,8 @@ import {
   getPublicServices,
   getServiceDetails,
   patchProviderService,
-  updateProviderService
+  updateProviderService,
+  uploadProviderServiceImage
 } from "../services/serviceService.js";
 
 // CLEAN ARCHITECTURE: lista publica.
@@ -40,6 +41,10 @@ export async function createDev(req, res) {
 }
 
 // SUPABASE MIGRATION: detalhe com estatísticas.
+export async function uploadImage(req, res) {
+  return res.json(await uploadProviderServiceImage(req.user, req.body));
+}
+
 export async function details(req, res) {
   const id = parsePositiveId(req.params.id);
   return res.json(await getServiceDetails(id));

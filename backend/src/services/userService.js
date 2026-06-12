@@ -4,8 +4,10 @@ import {
   findProfileById,
   findUserById,
   updateAccountPassword,
-  updateProfile
+  updateProfile,
+  updateProfilePhoto
 } from "../repositories/userRepository.js";
+import { uploadProfileImage } from "../utils/profileStorage.js";
 
 // CLEAN ARCHITECTURE: carrega perfil autenticado.
 export async function getProfile(userId) {
@@ -24,6 +26,22 @@ export async function updateMyProfile(userId, payload) {
   }
 
   return updateProfile(userId, payload);
+}
+
+// CLEAN ARCHITECTURE: upload de foto de perfil e persistencia da URL publica.
+export async function updateMyProfilePhoto(userId, payload) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw createHttpError(404, "Utilizador nao encontrado");
+  }
+
+  const publicUrl = await uploadProfileImage(userId, payload);
+  const updated = await updateProfilePhoto(userId, publicUrl);
+  if (!updated) {
+    throw createHttpError(404, "Utilizador nao encontrado");
+  }
+
+  return updated;
 }
 
 // CLEAN ARCHITECTURE: password fica num fluxo isolado do perfil.

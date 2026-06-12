@@ -14,11 +14,13 @@ import {
   Save,
   User,
 } from "lucide-react";
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 const fieldClass =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-[#3B82F6]";
+const MAX_PROFILE_IMAGE_BYTES = 2 * 1024 * 1024;
+const PROFILE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const emptyProfile: UpdateMePayload = {
   nome: "",
@@ -32,9 +34,12 @@ const emptyProfile: UpdateMePayload = {
 export default function Profile() {
   const navigate = useNavigate();
   const storedUser = getUser();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [profile, setProfile] = useState<ApiUser | null>(storedUser);
   const [form, setForm] = useState<UpdateMePayload>(emptyProfile);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -55,6 +60,12 @@ export default function Profile() {
     void loadProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    };
+  }, [imagePreviewUrl]);
 
   async function loadProfile() {
     try {
@@ -92,15 +103,25 @@ export default function Profile() {
     setNotice(null);
 
     try {
+      let photoUrl = form.foto_perfil?.trim() || null;
+
+      if (selectedImage) {
+        const photoProfile = await api.uploadProfilePhoto(selectedImage);
+        photoUrl = photoProfile.foto_perfil || null;
+      }
+
       const updated = await api.updateMe({
         nome: form.nome.trim(),
         telefone: form.telefone?.trim() || null,
         localizacao: form.localizacao?.trim() || null,
         profissao: form.profissao?.trim() || null,
         descricao: form.descricao?.trim() || null,
-        foto_perfil: form.foto_perfil?.trim() || null,
+        foto_perfil: photoUrl,
       });
       applyProfile(updated);
+      setSelectedImage(null);
+      setImagePreviewUrl(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setNotice("Perfil atualizado com sucesso.");
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao guardar perfil");
@@ -134,7 +155,31 @@ export default function Profile() {
     }
   }
 
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!PROFILE_IMAGE_TYPES.includes(file.type) || !["jpg", "jpeg", "png", "webp"].includes(extension || "")) {
+      setErr("Formato inválido. Usa JPG, PNG ou WEBP.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_PROFILE_IMAGE_BYTES) {
+      setErr("A imagem deve ter no máximo 2MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setErr(null);
+    setNotice(null);
+    setSelectedImage(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
+  }
+
   const initial = profile?.nome?.slice(0, 1).toUpperCase() || "U";
+  const profileImage = imagePreviewUrl || form.foto_perfil;
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
@@ -157,8 +202,8 @@ export default function Profile() {
               <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <div className="flex flex-col items-center text-center">
                   <div className="relative h-32 w-32 overflow-hidden rounded-full bg-blue-100 text-[#1E3A8A]">
-                    {form.foto_perfil ? (
-                      <img src={form.foto_perfil} alt={form.nome} className="h-full w-full object-cover" />
+                    {profileImage ? (
+                      <img src={profileImage} alt={form.nome} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-5xl font-semibold">
                         {initial}
@@ -233,16 +278,25 @@ export default function Profile() {
                     />
                   </Field>
 
-                  <Field label="URL da foto">
-                    <div className="relative">
-                      <Camera className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="url"
-                        value={form.foto_perfil || ""}
-                        onChange={(event) => setForm((current) => ({ ...current, foto_perfil: event.target.value }))}
-                        className={`${fieldClass} pl-9`}
-                      />
-                    </div>
+                  <Field label="Imagem de perfil">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                    >
+                      <Camera className="h-4 w-4" />
+                      Escolher imagem
+                    </button>
+                    {selectedImage && (
+                      <p className="mt-2 truncate text-sm text-gray-500">{selectedImage.name}</p>
+                    )}
                   </Field>
                 </div>
 

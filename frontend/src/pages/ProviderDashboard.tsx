@@ -1,6 +1,6 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -26,6 +26,8 @@ import { euro } from "../lib/money";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1527515545081-5db817172677?auto=format&fit=crop&w=1200&q=80";
+const MAX_SERVICE_IMAGE_BYTES = 2 * 1024 * 1024;
+const SERVICE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const categoryOptions = [
   "Limpeza",
@@ -91,6 +93,7 @@ function isActive(service: ApiService) {
 export default function ProviderDashboard() {
   const navigate = useNavigate();
   const user = getUser();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [services, setServices] = useState<ApiService[]>([]);
   const [quotes, setQuotes] = useState<ProviderQuote[]>([]);
@@ -98,8 +101,11 @@ export default function ProviderDashboard() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -117,6 +123,19 @@ export default function ProviderDashboard() {
     void loadDashboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    };
+  }, [imagePreviewUrl]);
+
+  function clearSelectedImage() {
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    setSelectedImage(null);
+    setImagePreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
 
   async function loadDashboard() {
     try {
@@ -166,6 +185,7 @@ export default function ProviderDashboard() {
   function startCreate(clearFeedback = true) {
     setEditingId(null);
     setForm(emptyForm);
+    clearSelectedImage();
     if (clearFeedback) {
       setErr(null);
       setNotice(null);
@@ -175,6 +195,7 @@ export default function ProviderDashboard() {
   function startEdit(service: ApiService) {
     setEditingId(service.id_servico);
     setForm(toForm(service));
+    clearSelectedImage();
     setErr(null);
     setNotice(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -187,7 +208,17 @@ export default function ProviderDashboard() {
     setNotice(null);
 
     try {
-      const payload = toPayload(form);
+      let imageUrl = form.imagem_url.trim() || null;
+
+      if (selectedImage) {
+        const uploaded = await api.uploadServiceImage(selectedImage);
+        imageUrl = uploaded.url;
+      }
+
+      const payload = {
+        ...toPayload(form),
+        imagem_url: imageUrl,
+      };
 
       if (editingId) {
         const updated = await api.updateService(editingId, payload);
@@ -207,6 +238,30 @@ export default function ProviderDashboard() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!SERVICE_IMAGE_TYPES.includes(file.type) || !["jpg", "jpeg", "png", "webp"].includes(extension || "")) {
+      setErr("Formato inválido. Usa JPG, PNG ou WEBP.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_SERVICE_IMAGE_BYTES) {
+      setErr("A imagem deve ter no máximo 2MB.");
+      event.target.value = "";
+      return;
+    }
+
+    if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    setErr(null);
+    setNotice(null);
+    setSelectedImage(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
   }
 
   async function toggleService(service: ApiService) {
@@ -233,6 +288,7 @@ export default function ProviderDashboard() {
 
     setErr(null);
     setNotice(null);
+    setDeletingId(service.id_servico);
 
     try {
       await api.deleteService(service.id_servico);
@@ -241,6 +297,8 @@ export default function ProviderDashboard() {
       setNotice("Serviço eliminado.");
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Erro ao eliminar serviço");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -272,6 +330,8 @@ export default function ProviderDashboard() {
       </div>
     );
   }
+
+  const serviceImagePreview = imagePreviewUrl || form.imagem_url || FALLBACK_IMAGE;
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
@@ -305,7 +365,7 @@ export default function ProviderDashboard() {
           <Stat label="Serviços" value={stats.total} icon={<BriefcaseBusiness className="w-5 h-5" />} />
           <Stat label="Ativos" value={stats.active} icon={<CheckCircle2 className="w-5 h-5" />} />
           <Stat label="Inativos" value={stats.inactive} icon={<Power className="w-5 h-5" />} />
-          <Stat label="Contrapropostas" value={stats.requests} icon={<MessageSquare className="w-5 h-5" />} />
+          <Stat label="Comentários" value={stats.requests} icon={<MessageSquare className="w-5 h-5" />} />
           <Stat label="Visualizações" value={stats.views} icon={<Eye className="w-5 h-5" />} />
           <Stat label="Avaliação média" value={stats.averageRating.toFixed(1)} icon={<Star className="w-5 h-5" />} />
         </section>
@@ -432,6 +492,7 @@ export default function ProviderDashboard() {
                     onEdit={startEdit}
                     onToggle={toggleService}
                     onDelete={deleteService}
+                    isDeleting={deletingId === service.id_servico}
                   />
                 ))}
               </div>
@@ -518,16 +579,28 @@ export default function ProviderDashboard() {
                   />
                 </Field>
 
-                <Field label="Imagem URL">
+                <Field label="Imagem do serviço">
                   <input
-                    type="url"
-                    value={form.imagem_url}
-                    onChange={(event) => setForm((current) => ({ ...current, imagem_url: event.target.value }))}
-                    className={fieldClass}
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    onChange={handleImageChange}
+                    className="hidden"
                   />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                    Escolher imagem
+                  </button>
+                  {selectedImage && (
+                    <p className="mt-2 truncate text-sm text-gray-500">{selectedImage.name}</p>
+                  )}
                   <div className="mt-3 h-32 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
                     <img
-                      src={form.imagem_url || FALLBACK_IMAGE}
+                      src={serviceImagePreview}
                       alt="Pré-visualização do serviço"
                       className="h-full w-full object-cover"
                       onError={(event) => {
@@ -640,11 +713,13 @@ function ServiceRow({
   onEdit,
   onToggle,
   onDelete,
+  isDeleting,
 }: {
   service: ApiService;
   onEdit: (service: ApiService) => void;
   onToggle: (service: ApiService) => void;
   onDelete: (service: ApiService) => void;
+  isDeleting: boolean;
 }) {
   const active = isActive(service);
   const rating = Number(service.rating || 0);
@@ -730,10 +805,11 @@ function ServiceRow({
               <button
                 type="button"
                 onClick={() => onDelete(service)}
+                disabled={isDeleting}
                 className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50"
                 title="Eliminar serviço"
               >
-                <Trash2 className="w-5 h-5" />
+                {isDeleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
               </button>
             </div>
           </div>

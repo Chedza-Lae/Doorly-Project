@@ -124,7 +124,7 @@ export function validateTimeRange(start, end) {
   const horaInicio = validateTime(start, "hora_inicio");
   const horaFim = validateTime(end, "hora_fim");
   if (horaInicio >= horaFim) {
-    throw createHttpError(400, "hora_fim deve ser posterior a hora_inicio");
+    throw createHttpError(400, "A hora de término deve ser depois da hora de início.");
   }
   return { hora_inicio: horaInicio, hora_fim: horaFim };
 }

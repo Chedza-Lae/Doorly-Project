@@ -383,9 +383,6 @@ export default function ServiceDetail() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-gray-900">{providerName}</h3>
-                    <span className="text-xs bg-blue-50 text-[#1E3A8A] px-2 py-0.5 rounded-full">
-                      Verificado (protótipo)
-                    </span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
                     Categoria: {service.categoria} • Zona: {location}

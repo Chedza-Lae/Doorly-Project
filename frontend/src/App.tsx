@@ -23,6 +23,7 @@ import Privacy from './pages/Privacy';
 import Cookies from './pages/Cookies';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFound from './pages/NotFound';
+import HelpWidget from './components/HelpWidget';
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
         <Route path="/cookies" element={<Cookies />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <HelpWidget />
     </Router>
   );
 }

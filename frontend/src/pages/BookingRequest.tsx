@@ -7,10 +7,50 @@ import { api, getUser } from "../lib/api";
 import type { ApiService } from "../lib/api";
 import { euro } from "../lib/money";
 
-function localToday() {
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  return now.toISOString().slice(0, 10);
+function addMinutes(date: Date, minutes: number) {
+  const next = new Date(date);
+  next.setSeconds(0, 0);
+  next.setMinutes(next.getMinutes() + minutes);
+  return next;
+}
+
+function localDateValue(date: Date) {
+  const value = new Date(date);
+  value.setMinutes(value.getMinutes() - value.getTimezoneOffset());
+  return value.toISOString().slice(0, 10);
+}
+
+function localTimeValue(date: Date) {
+  return date.toTimeString().slice(0, 5);
+}
+
+function buildLocalDateTime(dateValue: string, timeValue: string) {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+}
+
+function initialBookingValues() {
+  const start = addMinutes(new Date(), 1);
+  const end = addMinutes(start, 60);
+  return {
+    date: localDateValue(start),
+    startTime: localTimeValue(start),
+    endTime: localDateValue(end) === localDateValue(start) ? localTimeValue(end) : "23:59",
+  };
+}
+
+function getScheduleValidationError(date: string, startTime: string, endTime: string, now = new Date()) {
+  if (startTime >= endTime) {
+    return "A hora de término deve ser depois da hora de início.";
+  }
+
+  const start = buildLocalDateTime(date, startTime);
+  if (start <= now) {
+    return "Escolhe uma data e hora futura.";
+  }
+
+  return null;
 }
 
 export default function BookingRequest() {
@@ -18,17 +58,22 @@ export default function BookingRequest() {
   const navigate = useNavigate();
   const serviceId = useMemo(() => Number(params.get("service_id")), [params]);
   const user = useMemo(() => getUser(), []);
-  const today = useMemo(() => localToday(), []);
+  const initial = useMemo(() => initialBookingValues(), []);
 
   const [service, setService] = useState<ApiService | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [now, setNow] = useState(new Date());
 
-  const [date, setDate] = useState(today);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
+  const [date, setDate] = useState(initial.date);
+  const [startTime, setStartTime] = useState(initial.startTime);
+  const [endTime, setEndTime] = useState(initial.endTime);
   const [description, setDescription] = useState("");
+
+  const earliestStart = addMinutes(now, 1);
+  const minDate = localDateValue(earliestStart);
+  const minStartTime = date === minDate ? localTimeValue(earliestStart) : undefined;
 
   useEffect(() => {
     if (!user) {
@@ -54,6 +99,18 @@ export default function BookingRequest() {
     })();
   }, [navigate, serviceId, user]);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (date < minDate) {
+      setDate(minDate);
+      setStartTime(localTimeValue(earliestStart));
+    }
+  }, [date, earliestStart, minDate]);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErr(null);
@@ -68,13 +125,14 @@ export default function BookingRequest() {
       return;
     }
 
-    if (date < today) {
-      setErr("Escolhe uma data de hoje em diante.");
+    if (date < minDate) {
+      setErr("Escolhe uma data e hora futura.");
       return;
     }
 
-    if (startTime >= endTime) {
-      setErr("A hora de fim deve ser posterior à hora de início.");
+    const validationError = getScheduleValidationError(date, startTime, endTime, now);
+    if (validationError) {
+      setErr(validationError);
       return;
     }
 
@@ -140,10 +198,17 @@ export default function BookingRequest() {
                     <CalendarDays className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                     <input
                       type="date"
-                      min={today}
+                      min={minDate}
                       required
                       value={date}
-                      onChange={(event) => setDate(event.target.value)}
+                      onChange={(event) => {
+                        const nextDate = event.target.value;
+                        setDate(nextDate);
+                        const nextMinStart = nextDate === minDate ? localTimeValue(earliestStart) : undefined;
+                        if (nextMinStart && startTime < nextMinStart) {
+                          setStartTime(nextMinStart);
+                        }
+                      }}
                       className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 outline-none focus:border-transparent focus:ring-2 focus:ring-[#3B82F6]"
                     />
                   </div>
@@ -156,8 +221,16 @@ export default function BookingRequest() {
                     <input
                       type="time"
                       required
+                      min={minStartTime}
                       value={startTime}
-                      onChange={(event) => setStartTime(event.target.value)}
+                      onChange={(event) => {
+                        const nextStart = event.target.value;
+                        setStartTime(nextStart);
+                        if (endTime <= nextStart) {
+                          const suggestedEnd = addMinutes(buildLocalDateTime(date, nextStart), 60);
+                          setEndTime(localDateValue(suggestedEnd) === date ? localTimeValue(suggestedEnd) : "23:59");
+                        }
+                      }}
                       className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 outline-none focus:border-transparent focus:ring-2 focus:ring-[#3B82F6]"
                     />
                   </div>
@@ -170,6 +243,7 @@ export default function BookingRequest() {
                     <input
                       type="time"
                       required
+                      min={startTime}
                       value={endTime}
                       onChange={(event) => setEndTime(event.target.value)}
                       className="w-full rounded-xl border border-gray-300 py-3 pl-10 pr-4 outline-none focus:border-transparent focus:ring-2 focus:ring-[#3B82F6]"

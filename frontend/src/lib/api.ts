@@ -1,4 +1,6 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export type LoginResponse = {
   token: string;
@@ -122,6 +124,18 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error(data?.message || data?.msg || data?.error || `Erro ${res.status}`);
   }
   return data as T;
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      resolve(result.split(",")[1] || "");
+    };
+    reader.onerror = () => reject(new Error("Erro ao ler imagem"));
+    reader.readAsDataURL(file);
+  });
 }
 
 export type StoredUser = {
@@ -269,6 +283,46 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+  uploadProfilePhoto: async (file: File) => {
+    if (!IMAGE_TYPES.includes(file.type)) {
+      throw new Error("Formato inválido. Usa JPG, PNG ou WEBP");
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      throw new Error("A imagem deve ter no máximo 2MB");
+    }
+
+    const data = await fileToBase64(file);
+    return request<ApiUser>("/api/users/me/photo", {
+      method: "POST",
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type,
+        data,
+      }),
+    });
+  },
+
+  uploadServiceImage: async (file: File) => {
+    if (!IMAGE_TYPES.includes(file.type)) {
+      throw new Error("Formato inválido. Usa JPG, PNG ou WEBP");
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      throw new Error("A imagem deve ter no máximo 2MB");
+    }
+
+    const data = await fileToBase64(file);
+    return request<{ url: string }>("/api/servicos/image", {
+      method: "POST",
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type,
+        data,
+      }),
+    });
+  },
+
   updatePassword: (payload: UpdatePasswordPayload) =>
     request<{ message: string }>("/api/users/password", {
       method: "PUT",
@@ -336,8 +390,12 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
-  deleteService: (id: number) =>
-    request<{ message: string }>(`/api/servicos/${id}`, { method: "DELETE" }),
+  deleteService: (id: number) => {
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new Error("ID do serviço inválido");
+    }
+    return request<{ message: string }>(`/api/servicos/${id}`, { method: "DELETE" });
+  },
 
   // messages
   sendMessage: (service_id: number, content: string) =>

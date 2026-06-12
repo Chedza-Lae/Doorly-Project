@@ -104,7 +104,7 @@ export default function NewMessage() {
             className="w-full min-h-40 border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#3B82F6] focus:border-transparent"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Ola! Tenho interesse no teu serviço..."
+            placeholder="Olá! Tenho interesse no teu serviço..."
           />
 
           {err && (

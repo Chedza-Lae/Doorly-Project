@@ -65,10 +65,19 @@ backend/.env
 
 PORT=3001
 JWT_SECRET=chave_exemplo_segura
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=doorly
+FRONTEND_URL=http://localhost:5173
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+SUPABASE_URL=https://PROJECT-REF.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=service-role-key
+SUPABASE_STORAGE_BUCKET=profile-images
+SUPABASE_PROFILE_IMAGES_BUCKET=profile-images
+SUPABASE_SERVICE_IMAGES_BUCKET=service-images
+EMAIL_USER=teu-email@gmail.com
+EMAIL_PASS=app-password-do-gmail
+
+Para produção, definir no ambiente do backend:
+
+FRONTEND_URL=https://URL-DO-FRONTEND.vercel.app
 
 ### Build do Frontend
 

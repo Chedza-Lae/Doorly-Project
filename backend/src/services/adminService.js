@@ -65,11 +65,15 @@ export async function removeServiceAsAdmin(admin, serviceId) {
 
 // CLEAN ARCHITECTURE: reset password admin.
 export async function resetUserPassword(userId, password) {
-  if (!password || password.length < 8) {
-    throw createHttpError(400, "Password deve ter pelo menos 8 caracteres");
+  if (!password || password.length < 5) {
+    throw createHttpError(400, "Password deve ter pelo menos 5 caracteres");
   }
   const hashedPassword = await bcrypt.hash(password, 10);
-  await updatePassword(userId, hashedPassword);
+  const rowCount = await updatePassword(userId, hashedPassword);
+
+  if (rowCount === 0) {
+    throw createHttpError(404, "Utilizador nÃ£o encontrado");
+  }
 }
 
 // NEW FEATURE: banir utilizador com log automático.

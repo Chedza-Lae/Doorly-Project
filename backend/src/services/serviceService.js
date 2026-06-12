@@ -14,7 +14,7 @@ import {
   createStatisticsForService,
   incrementViews
 } from "../repositories/statisticsRepository.js";
-import { createAdminLog } from "../repositories/adminLogRepository.js";
+import { uploadServiceImage } from "../utils/profileStorage.js";
 
 function assertCanManageService(service, user) {
   if (!service) {
@@ -23,6 +23,20 @@ function assertCanManageService(service, user) {
 
   if (user.tipo !== "admin" && Number(service.id_prestador) !== Number(user.id)) {
     throw createHttpError(403, "Sem permissão para gerir este serviço");
+  }
+}
+
+function assertCanDeleteProviderService(service, user) {
+  if (!service) {
+    throw createHttpError(404, "Servico nao encontrado");
+  }
+
+  if (user.tipo !== "prestador" && user.tipo !== "admin") {
+    throw createHttpError(403, "Apenas prestadores podem eliminar servicos nesta rota");
+  }
+
+  if (user.tipo !== "admin" && Number(service.id_prestador) !== Number(user.id)) {
+    throw createHttpError(403, "Este servico nao pertence ao prestador autenticado");
   }
 }
 
@@ -78,6 +92,15 @@ export async function createDevService(payload) {
 }
 
 // CLEAN ARCHITECTURE: update completo com permissão.
+export async function uploadProviderServiceImage(user, payload) {
+  if (user.tipo !== "prestador" && user.tipo !== "admin") {
+    throw createHttpError(403, "Apenas prestadores podem enviar imagens de servicos");
+  }
+
+  const url = await uploadServiceImage(user.id, payload);
+  return { url };
+}
+
 export async function updateProviderService(id, user, payload) {
   const service = await findServiceById(id);
   assertCanManageService(service, user);
@@ -97,18 +120,12 @@ export async function patchProviderService(id, user, payload) {
 // SUPABASE MIGRATION: delete cascade numa transaction pg.
 export async function deleteProviderService(id, user) {
   const service = await findServiceById(id);
-  assertCanManageService(service, user);
+  assertCanDeleteProviderService(service, user);
 
   await withTransaction(async (client) => {
-    await deleteServiceCascade(id, client);
-    if (user.tipo === "admin") {
-      // NEW FEATURE: admin log automático ao eliminar serviço.
-      await createAdminLog({
-        admin_id: user.id,
-        action: "DELETE_SERVICE",
-        target_user_id: service.id_prestador,
-        details: `Serviço eliminado: ${id}`
-      }, client);
+    const rowCount = await deleteServiceCascade(id, client);
+    if (rowCount === 0) {
+      throw createHttpError(404, "Servico nao encontrado");
     }
   });
 }

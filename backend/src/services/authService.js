@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { getFrontendUrl } from "../config/frontend.js";
 import { sendResetEmail } from "../utils/sendEmail.js";
 import { createHttpError } from "../utils/httpError.js";
 import {
@@ -89,8 +90,7 @@ export async function forgotPassword({ email }) {
   const expires = new Date(Date.now() + 3600000);
   await setResetToken(user.id_utilizador, token, expires);
 
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-  const resetLink = `${frontendUrl.replace(/\/$/, "")}/reset-password/${token}`;
+  const resetLink = `${getFrontendUrl()}/reset-password/${token}`;
   await sendResetEmail(user.email, resetLink);
 }
 

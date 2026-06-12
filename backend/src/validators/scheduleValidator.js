@@ -5,9 +5,31 @@ import {
   validateEnum,
   validateTimeRange
 } from "./commonValidators.js";
+import { createHttpError } from "../utils/httpError.js";
 
 // NEW FEATURE: estados suportados por agendamentos.
 export const scheduleStates = ["pendente", "aceite", "rejeitado", "concluido", "cancelado"];
+
+function buildLocalDateTime(dateValue, timeValue) {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes, 0, 0);
+}
+
+function validateFutureScheduleDateTime(payload) {
+  if (!payload.data_agendada || !payload.hora_inicio || !payload.hora_fim) return;
+
+  const start = buildLocalDateTime(payload.data_agendada, payload.hora_inicio);
+  const end = buildLocalDateTime(payload.data_agendada, payload.hora_fim);
+
+  if (end <= start) {
+    throw createHttpError(400, "A hora de término deve ser depois da hora de início.");
+  }
+
+  if (start <= new Date()) {
+    throw createHttpError(400, "Escolhe uma data e hora futura.");
+  }
+}
 
 // NEW FEATURE: valida criação/edição de agendamento.
 export function validateSchedulePayload(body, { partial = false } = {}) {
@@ -24,6 +46,7 @@ export function validateSchedulePayload(body, { partial = false } = {}) {
   }
 
   payload.descricao = optionalString(body.descricao ?? body.notas);
+  validateFutureScheduleDateTime(payload);
   return payload;
 }
 
