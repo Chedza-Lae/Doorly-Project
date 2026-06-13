@@ -66,7 +66,7 @@ backend/.env
 PORT=3001
 JWT_SECRET=chave_exemplo_segura
 FRONTEND_URL=http://localhost:5173
-DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+DATABASE_URL=postgresql://postgres.ykoggygosoyvxwhtjlwt:ClS%2320_Aug08@aws-0-eu-west-1.pooler.supabase.com:6543/postgres
 SUPABASE_URL=https://PROJECT-REF.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=service-role-key
 SUPABASE_STORAGE_BUCKET=profile-images
