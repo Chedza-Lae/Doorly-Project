@@ -222,7 +222,7 @@ export default function HomePage() {
         <div className="flex items-end justify-between gap-6 mb-8">
           <div>
             <h2 className="text-3xl text-gray-900">Serviços em destaque</h2>
-            <p className="text-gray-600 mt-1">Escolhas populares (dados reais da tua BD).</p>
+            <p className="text-gray-600 mt-1">Escolhas populares.</p>
           </div>
         </div>
 

@@ -121,6 +121,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    if (res.status === 401 && token) {
+      clearToken();
+      if (window.location.pathname !== "/419") {
+        window.location.assign("/419");
+      }
+    }
     throw new Error(data?.message || data?.msg || data?.error || `Erro ${res.status}`);
   }
   return data as T;
@@ -173,6 +179,7 @@ export type UpdatePasswordPayload = {
 };
 
 export type BookingStatus = "pendente" | "aceite" | "rejeitado" | "concluido" | "cancelado";
+export type PaymentStatus = "aguarda_pagamento" | "pago" | "pagamento_falhado";
 
 export type Booking = {
   id: number;
@@ -183,12 +190,16 @@ export type Booking = {
   hora_inicio: string;
   hora_fim?: string | null;
   estado: BookingStatus;
+  estado_pagamento?: PaymentStatus;
+  pagamento_referencia?: string | null;
+  pago_em?: string | null;
   descricao?: string | null;
   observacoes_prestador?: string | null;
   created_at?: string;
   updated_at?: string;
   nome_servico?: string;
   titulo_servico?: string;
+  preco_servico?: string | number | null;
   nome_cliente?: string;
   nome_prestador?: string;
 };
@@ -341,6 +352,12 @@ export const api = {
     request<Booking>(`/api/agendamentos/${id}/status`, {
       method: "PATCH",
       body: JSON.stringify({ estado }),
+    }),
+
+  payBooking: (id: number) =>
+    request<Booking>(`/api/agendamentos/${id}/payment`, {
+      method: "PATCH",
+      body: JSON.stringify({}),
     }),
 
   getCustomerHistory: () => request<Booking[]>("/api/agendamentos/me"),

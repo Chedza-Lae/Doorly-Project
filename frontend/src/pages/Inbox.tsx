@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, getUser } from "../lib/api";
 import type { InboxItem } from "../lib/api";
+import { formatDate } from "../lib/date";
 import { MessageCircle, Clock3, Briefcase } from "lucide-react";
 
 export default function Inbox() {
@@ -78,7 +79,7 @@ export default function Inbox() {
 
                 <div className="flex shrink-0 items-center gap-2 text-sm text-gray-400">
                   <Clock3 className="w-4 h-4" />
-                  {new Date(m.data_envio).toLocaleDateString()}
+                  {formatDate(m.data_envio, "Data por confirmar")}
                 </div>
               </div>
 

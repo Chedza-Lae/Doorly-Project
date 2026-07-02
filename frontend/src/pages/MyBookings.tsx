@@ -1,17 +1,20 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { api, getUser, type Booking, type BookingStatus } from "../lib/api";
+import { api, getUser, type Booking, type BookingStatus, type PaymentStatus } from "../lib/api";
 import {
   AlertCircle,
   CalendarDays,
   CheckCircle2,
   Clock,
+  CreditCard,
   Loader2,
   MapPin,
   UserRound,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { formatDate } from "../lib/date";
 
 const statusOptions: BookingStatus[] = ["aceite", "rejeitado", "concluido", "cancelado"];
 
@@ -23,6 +26,18 @@ const statusStyles: Record<BookingStatus, string> = {
   cancelado: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
+const paymentLabels: Record<PaymentStatus, string> = {
+  aguarda_pagamento: "Aguarda pagamento",
+  pago: "Pago",
+  pagamento_falhado: "Pagamento falhado",
+};
+
+const paymentStyles: Record<PaymentStatus, string> = {
+  aguarda_pagamento: "border-yellow-200 bg-yellow-50 text-yellow-800",
+  pago: "border-green-200 bg-green-50 text-green-700",
+  pagamento_falhado: "border-red-200 bg-red-50 text-red-700",
+};
+
 export default function MyBookings() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,6 +45,8 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [payingId, setPayingId] = useState<number | null>(null);
+  const [paymentBooking, setPaymentBooking] = useState<Booking | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -79,6 +96,25 @@ export default function MyBookings() {
     }
   }
 
+  async function confirmPayment() {
+    if (!paymentBooking) return;
+
+    setPayingId(paymentBooking.id);
+    setErr(null);
+    setNotice(null);
+
+    try {
+      const updated = await api.payBooking(paymentBooking.id);
+      setBookings((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
+      setPaymentBooking(null);
+      setNotice("Pagamento registado com sucesso.");
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Erro ao registar pagamento");
+    } finally {
+      setPayingId(null);
+    }
+  }
+
   const title = user?.tipo === "prestador" ? "Agendamentos recebidos" : "Meus agendamentos";
   const subtitle =
     user?.tipo === "prestador"
@@ -123,13 +159,24 @@ export default function MyBookings() {
                 key={booking.id}
                 booking={booking}
                 canUpdate={user?.tipo === "prestador"}
+                isClient={user?.tipo === "cliente"}
                 updating={updatingId === booking.id}
                 onStatusChange={updateStatus}
+                onPay={setPaymentBooking}
               />
             ))}
           </div>
         )}
       </main>
+
+      {paymentBooking && (
+        <PaymentModal
+          booking={paymentBooking}
+          paying={payingId === paymentBooking.id}
+          onClose={() => setPaymentBooking(null)}
+          onConfirm={confirmPayment}
+        />
+      )}
 
       <Footer />
     </div>
@@ -139,16 +186,22 @@ export default function MyBookings() {
 function BookingCard({
   booking,
   canUpdate,
+  isClient,
   updating,
   onStatusChange,
+  onPay,
 }: {
   booking: Booking;
   canUpdate: boolean;
+  isClient: boolean;
   updating: boolean;
   onStatusChange: (booking: Booking, estado: BookingStatus) => void;
+  onPay: (booking: Booking) => void;
 }) {
   const serviceName = booking.nome_servico || booking.titulo_servico || "Serviço";
-  const date = booking.data_agendada ? new Date(`${booking.data_agendada}T00:00:00`).toLocaleDateString() : "Data a combinar";
+  const date = formatDate(booking.data_agendada);
+  const paymentStatus = booking.estado_pagamento || "aguarda_pagamento";
+  const canPay = isClient && booking.estado === "aceite" && paymentStatus !== "pago";
 
   return (
     <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -171,6 +224,15 @@ function BookingCard({
         <Badge estado={booking.estado} />
       </div>
 
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <PaymentBadge estado={paymentStatus} />
+        {booking.pagamento_referencia && (
+          <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
+            Ref. {booking.pagamento_referencia}
+          </span>
+        )}
+      </div>
+
       <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
         <span className="inline-flex items-center gap-2">
           <UserRound className="h-4 w-4 text-gray-400" />
@@ -183,6 +245,19 @@ function BookingCard({
       </div>
 
       {booking.descricao && <p className="mt-4 line-clamp-3 text-sm text-gray-700">{booking.descricao}</p>}
+
+      {canPay && (
+        <div className="mt-5 border-t border-gray-100 pt-4">
+          <button
+            type="button"
+            onClick={() => onPay(booking)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0B1B46] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1E3A8A]"
+          >
+            <CreditCard className="h-4 w-4" />
+            Pagar agora
+          </button>
+        </div>
+      )}
 
       {canUpdate && (
         <div className="mt-5 flex flex-col gap-2 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -213,6 +288,84 @@ function Badge({ estado }: { estado: BookingStatus }) {
     <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${statusStyles[estado]}`}>
       {estado}
     </span>
+  );
+}
+
+function PaymentBadge({ estado }: { estado: PaymentStatus }) {
+  return (
+    <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${paymentStyles[estado]}`}>
+      {paymentLabels[estado]}
+    </span>
+  );
+}
+
+function PaymentModal({
+  booking,
+  paying,
+  onClose,
+  onConfirm,
+}: {
+  booking: Booking;
+  paying: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const serviceName = booking.nome_servico || booking.titulo_servico || "Serviço";
+  const price = booking.preco_servico != null ? Number(booking.preco_servico) : null;
+  const formattedPrice = price != null && Number.isFinite(price)
+    ? new Intl.NumberFormat("pt-PT", { style: "currency", currency: "EUR" }).format(price)
+    : "Valor a confirmar";
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 px-4 py-8">
+      <section className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="mb-2 text-sm font-semibold text-[#1E3A8A]">Pagamento simulado</p>
+            <h2 className="text-2xl font-bold text-[#0B1B46]">Confirmar pagamento</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            aria-label="Fechar pagamento"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm">
+          <div className="flex items-center justify-between gap-4 border-b border-gray-200 pb-3">
+            <span className="text-gray-600">Serviço</span>
+            <span className="text-right font-semibold text-gray-900">{serviceName}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4 pt-3">
+            <span className="text-gray-600">Total</span>
+            <span className="text-right text-xl font-bold text-[#0B1B46]">{formattedPrice}</span>
+          </div>
+        </div>
+
+        {/* TODO Stripe Checkout: substituir este botão por criação de Checkout Session e redirecionamento para session.url. */}
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={paying}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#0B1B46] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1E3A8A] disabled:opacity-60"
+          >
+            {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+            Confirmar pagamento
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 

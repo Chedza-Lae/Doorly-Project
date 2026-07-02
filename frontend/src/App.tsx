@@ -16,6 +16,7 @@ import CustomerHistory from './pages/CustomerHistory';
 import MyBookings from './pages/MyBookings';
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
+import SessionExpired from "./pages/SessionExpired";
 import QuoteRequest from "./pages/QuoteRequest";
 import BookingRequest from "./pages/BookingRequest";
 import Terms from './pages/Terms';
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/provider/profile" element={<Navigate to="/prestador/dashboard" replace />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/419" element={<SessionExpired />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/cookies" element={<Cookies />} />

@@ -131,11 +131,31 @@ CREATE TABLE IF NOT EXISTS agendamentos (
   hora_inicio TIME NOT NULL,
   hora_fim TIME NOT NULL,
   estado TEXT NOT NULL DEFAULT 'pendente' CHECK (estado IN ('pendente', 'aceite', 'rejeitado', 'concluido', 'cancelado')),
+  estado_pagamento TEXT NOT NULL DEFAULT 'aguarda_pagamento' CHECK (estado_pagamento IN ('aguarda_pagamento', 'pago', 'pagamento_falhado')),
+  pagamento_referencia TEXT,
+  pago_em TIMESTAMPTZ,
   descricao TEXT,
   observacoes_prestador TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE agendamentos ADD COLUMN IF NOT EXISTS estado_pagamento TEXT NOT NULL DEFAULT 'aguarda_pagamento';
+ALTER TABLE agendamentos ADD COLUMN IF NOT EXISTS pagamento_referencia TEXT;
+ALTER TABLE agendamentos ADD COLUMN IF NOT EXISTS pago_em TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'agendamentos_estado_pagamento_check'
+  ) THEN
+    ALTER TABLE agendamentos
+      ADD CONSTRAINT agendamentos_estado_pagamento_check
+      CHECK (estado_pagamento IN ('aguarda_pagamento', 'pago', 'pagamento_falhado'));
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS historico_servicos (
   id_historico BIGSERIAL PRIMARY KEY,

@@ -1,4 +1,10 @@
+import crypto from "crypto";
 import { createHttpError } from "../utils/httpError.js";
+import {
+  sendNewScheduleEmailToProvider,
+  sendScheduleCreatedEmailToClient,
+  sendScheduleStatusEmailToClient
+} from "../utils/sendEmail.js";
 import {
   createSchedule,
   deleteSchedule,
@@ -9,6 +15,7 @@ import {
   listClientSchedules,
   listProviderSchedules,
   updateSchedule,
+  updateSchedulePayment,
   updateScheduleStatus
 } from "../repositories/scheduleRepository.js";
 
@@ -52,11 +59,18 @@ export async function createServiceSchedule(user, payload) {
     throw createHttpError(409, "Já existe um agendamento nesse horário");
   }
 
-  return createSchedule({
+  const schedule = await createSchedule({
     ...payload,
     id_cliente: user.id,
     id_prestador: service.id_prestador
   });
+
+  await Promise.all([
+    sendScheduleCreatedEmailToClient(schedule),
+    sendNewScheduleEmailToProvider(schedule)
+  ]);
+
+  return schedule;
 }
 
 // NEW FEATURE: agendamentos do cliente.
@@ -111,7 +125,44 @@ export async function changeScheduleStatus(user, scheduleId, estado) {
     throw createHttpError(403, "Apenas o prestador dono do agendamento pode alterar o estado");
   }
 
-  return updateScheduleStatus(scheduleId, estado);
+  const updatedSchedule = await updateScheduleStatus(scheduleId, estado);
+  if (["aceite", "rejeitado", "concluido", "cancelado"].includes(estado)) {
+    await sendScheduleStatusEmailToClient(updatedSchedule);
+  }
+  return updatedSchedule;
+}
+
+// PAYMENT: fluxo simulado preparado para futura integração com Stripe Checkout.
+export async function registerSchedulePayment(user, scheduleId) {
+  if (user.tipo !== "cliente") {
+    throw createHttpError(403, "Apenas o cliente pode pagar este agendamento");
+  }
+
+  const schedule = await findScheduleById(scheduleId);
+  if (!schedule) {
+    throw createHttpError(404, "Agendamento não encontrado");
+  }
+
+  if (Number(schedule.cliente_id) !== Number(user.id)) {
+    throw createHttpError(403, "Sem permissão para pagar este agendamento");
+  }
+
+  if (schedule.estado !== "aceite") {
+    throw createHttpError(400, "O agendamento precisa de estar aceite antes do pagamento");
+  }
+
+  if (schedule.estado_pagamento === "pago") {
+    return schedule;
+  }
+
+  // TODO Stripe Checkout:
+  // 1. Criar uma Checkout Session com o valor do serviço.
+  // 2. Redirecionar o cliente para session.url.
+  // 3. Marcar como "pago" apenas no webhook checkout.session.completed.
+  return updateSchedulePayment(scheduleId, {
+    estado_pagamento: "pago",
+    pagamento_referencia: `SIM-${crypto.randomUUID()}`
+  });
 }
 
 // NEW FEATURE: elimina agendamento com permissão.

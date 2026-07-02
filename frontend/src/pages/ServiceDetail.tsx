@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { ApiService, Review } from "../lib/api";
+import { formatDate } from "../lib/date";
 import { euro } from "../lib/money";
 import { useNavigate } from "react-router-dom";
 import { addFavorite, removeFavorite, getFavorites, getUser } from "../lib/api";
@@ -355,7 +356,7 @@ export default function ServiceDetail() {
                         <div>
                           <p className="font-medium text-gray-900">{review.cliente}</p>
                           <p className="text-xs text-gray-500">
-                            {new Date(review.data).toLocaleDateString()}
+                            {formatDate(review.data, "Data por confirmar")}
                           </p>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-gray-700">

@@ -15,7 +15,7 @@ function getStorageConfig({ bucketEnv, defaultBucket }) {
   const bucket = process.env[bucketEnv] || process.env.SUPABASE_STORAGE_BUCKET || defaultBucket;
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw createHttpError(500, "Configuracao do Supabase Storage incompleta");
+    throw createHttpError(500, "Configuração do Supabase Storage incompleta");
   }
 
   return { supabaseUrl, serviceRoleKey, bucket };
@@ -23,16 +23,16 @@ function getStorageConfig({ bucketEnv, defaultBucket }) {
 
 function validateImagePayload({ fileName, contentType, data }) {
   if (!fileName || typeof fileName !== "string") {
-    throw createHttpError(400, "Nome do ficheiro invalido");
+    throw createHttpError(400, "Nome do ficheiro inválido");
   }
 
   if (!allowedTypes.has(contentType)) {
-    throw createHttpError(400, "Formato invalido. Usa JPG, PNG ou WEBP");
+    throw createHttpError(400, "Formato inválido. Usa JPG, PNG ou WEBP");
   }
 
   const extension = fileName.split(".").pop()?.toLowerCase();
   if (!["jpg", "jpeg", "png", "webp"].includes(extension)) {
-    throw createHttpError(400, "Extensao invalida. Usa jpg, jpeg, png ou webp");
+    throw createHttpError(400, "Extensão inválida. Usa jpg, jpeg, png ou webp");
   }
 
   if (!data || typeof data !== "string") {
@@ -41,11 +41,11 @@ function validateImagePayload({ fileName, contentType, data }) {
 
   const buffer = Buffer.from(data, "base64");
   if (!buffer.length) {
-    throw createHttpError(400, "Imagem invalida");
+    throw createHttpError(400, "Imagem inválida");
   }
 
   if (buffer.length > MAX_IMAGE_BYTES) {
-    throw createHttpError(400, "A imagem deve ter no maximo 2MB");
+    throw createHttpError(400, "A imagem deve ter no máximo 2MB");
   }
 
   return {

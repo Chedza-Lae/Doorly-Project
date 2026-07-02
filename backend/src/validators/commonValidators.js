@@ -114,7 +114,7 @@ export function validateDate(value, field = "data") {
 export function validateTime(value, field = "hora") {
   const text = requiredString(value, field);
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(text)) {
-    throw createHttpError(400, `${field} invalida`);
+    throw createHttpError(400, `${field} inválida`);
   }
   return text;
 }

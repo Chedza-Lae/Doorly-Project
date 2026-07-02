@@ -72,7 +72,7 @@ export async function resetUserPassword(userId, password) {
   const rowCount = await updatePassword(userId, hashedPassword);
 
   if (rowCount === 0) {
-    throw createHttpError(404, "Utilizador nÃ£o encontrado");
+    throw createHttpError(404, "Utilizador não encontrado");
   }
 }
 

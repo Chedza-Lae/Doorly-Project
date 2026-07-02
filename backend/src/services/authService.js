@@ -1,8 +1,11 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { getFrontendUrl } from "../config/frontend.js";
-import { sendResetEmail } from "../utils/sendEmail.js";
+import {
+  buildFrontendUrl,
+  sendResetEmail,
+  sendWelcomeEmail
+} from "../utils/sendEmail.js";
 import { createHttpError } from "../utils/httpError.js";
 import {
   createUser,
@@ -28,7 +31,9 @@ export async function registerUser(payload) {
   }
 
   const password_hash = await bcrypt.hash(payload.password, 10);
-  return createUser({ ...payload, password_hash });
+  const user = await createUser({ ...payload, password_hash });
+  await sendWelcomeEmail(user);
+  return user;
 }
 
 // CLEAN ARCHITECTURE: service de login e JWT.
@@ -90,8 +95,12 @@ export async function forgotPassword({ email }) {
   const expires = new Date(Date.now() + 3600000);
   await setResetToken(user.id_utilizador, token, expires);
 
-  const resetLink = `${getFrontendUrl()}/reset-password/${token}`;
-  await sendResetEmail(user.email, resetLink);
+  try {
+    const resetLink = buildFrontendUrl(`/reset-password/${token}`);
+    await sendResetEmail(user.email, resetLink);
+  } catch (error) {
+    console.error("[email] Falha ao preparar email de recuperacao:", error);
+  }
 }
 
 // CLEAN ARCHITECTURE: reset password.

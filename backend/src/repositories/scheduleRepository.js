@@ -7,18 +7,24 @@ const scheduleSelect = `
     a.cliente_id,
     a.prestador_id,
     a.servico_id,
-    a.data_agendada,
-    a.hora_inicio,
-    a.hora_fim,
+    a.data_agendada::text AS data_agendada,
+    a.hora_inicio::text AS hora_inicio,
+    a.hora_fim::text AS hora_fim,
     a.estado,
+    COALESCE(a.estado_pagamento, 'aguarda_pagamento') AS estado_pagamento,
+    a.pagamento_referencia,
+    a.pago_em,
     a.descricao,
     a.observacoes_prestador,
     a.created_at,
     a.updated_at,
     c.nome AS nome_cliente,
+    c.email AS email_cliente,
     p.nome AS nome_prestador,
+    p.email AS email_prestador,
     s.titulo AS nome_servico,
-    s.titulo AS titulo_servico
+    s.titulo AS titulo_servico,
+    s.preco AS preco_servico
   FROM agendamentos a
   JOIN utilizadores c ON c.id_utilizador = a.cliente_id
   JOIN utilizadores p ON p.id_utilizador = a.prestador_id
@@ -157,10 +163,33 @@ export async function updateScheduleStatus(scheduleId, estado) {
   const result = await pool.query(
     `UPDATE agendamentos
      SET estado = $1,
+         estado_pagamento = CASE
+           WHEN $1 = 'aceite' AND COALESCE(estado_pagamento, 'aguarda_pagamento') <> 'pago'
+             THEN 'aguarda_pagamento'
+           ELSE COALESCE(estado_pagamento, 'aguarda_pagamento')
+         END,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $2
      RETURNING id`,
     [estado, scheduleId]
+  );
+
+  if (!result.rows[0]) return null;
+  return findScheduleById(result.rows[0].id);
+}
+
+// PAYMENT: simula o registo de pagamento. Futuramente, este update deve ser acionado
+// pelo webhook do Stripe Checkout depois de confirmar checkout.session.completed.
+export async function updateSchedulePayment(scheduleId, { estado_pagamento, pagamento_referencia = null }) {
+  const result = await pool.query(
+    `UPDATE agendamentos
+     SET estado_pagamento = $1,
+         pagamento_referencia = $2,
+         pago_em = CASE WHEN $1 = 'pago' THEN CURRENT_TIMESTAMP ELSE NULL END,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = $3
+     RETURNING id`,
+    [estado_pagamento, pagamento_referencia, scheduleId]
   );
 
   if (!result.rows[0]) return null;

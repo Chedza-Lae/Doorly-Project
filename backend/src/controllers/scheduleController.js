@@ -9,6 +9,7 @@ import {
   editSchedule,
   getMySchedules,
   getProviderSchedules,
+  registerSchedulePayment,
   removeSchedule
 } from "../services/scheduleService.js";
 
@@ -40,6 +41,12 @@ export async function status(req, res) {
   const id = parsePositiveId(req.params.id, "id");
   const estado = validateScheduleStatus(req.body);
   return res.json(await changeScheduleStatus(req.user, id, estado));
+}
+
+// PAYMENT: endpoint simulado para confirmar pagamento do agendamento.
+export async function pay(req, res) {
+  const id = parsePositiveId(req.params.id, "id");
+  return res.json(await registerSchedulePayment(req.user, id));
 }
 
 // NEW FEATURE: elimina agendamento.

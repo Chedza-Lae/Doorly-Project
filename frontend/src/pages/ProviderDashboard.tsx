@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { api, getUser, type ApiService, type ProviderQuote, type Review, type ServicePayload } from "../lib/api";
+import { formatDate } from "../lib/date";
 import { euro } from "../lib/money";
 
 const FALLBACK_IMAGE =
@@ -443,7 +444,7 @@ export default function ProviderDashboard() {
                     <div>
                       <h3 className="font-semibold text-gray-900">{review.titulo_servico}</h3>
                       <p className="text-sm text-gray-600 mt-1">
-                        {review.cliente} · {new Date(review.data).toLocaleDateString()}
+                        {review.cliente} · {formatDate(review.data, "Data por confirmar")}
                       </p>
                     </div>
                     <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-sm text-gray-800">
@@ -699,7 +700,7 @@ function QuoteCard({
         </span>
         <span className="inline-flex items-center gap-2">
           <CalendarDays className="w-4 h-4" />
-          {quote.data_preferida ? new Date(quote.data_preferida).toLocaleDateString() : "A combinar"}
+          {formatDate(quote.data_preferida, "A combinar")}
         </span>
         <span>Urgência: {quote.urgencia || "Normal"}</span>
         <span>{quote.orcamento_estimado ? euro(quote.orcamento_estimado) : "Contraproposta a combinar"}</span>

@@ -40,7 +40,7 @@ export default function Thread() {
     }
 
     if (!serviceId || Number.isNaN(serviceId) || !otherId || Number.isNaN(otherId)) {
-      setErr("Conversa invalida.");
+      setErr("Conversa inválida.");
       setLoading(false);
       return;
     }

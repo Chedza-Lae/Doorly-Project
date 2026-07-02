@@ -4,6 +4,7 @@ import { api, getUser, type Booking, type BookingStatus } from "../lib/api";
 import { AlertCircle, CalendarDays, Clock, FileText, Loader2, UserRound } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "../lib/date";
 
 const statusStyles: Record<BookingStatus, string> = {
   pendente: "bg-yellow-50 text-yellow-800 border-yellow-200",
@@ -106,7 +107,7 @@ export default function CustomerHistory() {
 
 function HistoryRow({ item }: { item: Booking }) {
   const serviceName = item.nome_servico || item.titulo_servico || "Serviço";
-  const date = item.data_agendada ? new Date(`${item.data_agendada}T00:00:00`).toLocaleDateString() : "Data a combinar";
+  const date = formatDate(item.data_agendada);
 
   return (
     <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">

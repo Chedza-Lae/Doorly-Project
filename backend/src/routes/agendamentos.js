@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   create,
   mine,
+  pay,
   provider,
   remove,
   status,
@@ -19,6 +20,7 @@ router.get("/me", asyncHandler(mine));
 router.get("/prestador", asyncHandler(provider));
 router.put("/:id", asyncHandler(update));
 router.patch("/:id/status", asyncHandler(status));
+router.patch("/:id/payment", asyncHandler(pay));
 router.delete("/:id", asyncHandler(remove));
 
 export default router;
