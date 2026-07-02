@@ -1,12 +1,24 @@
+# Dependencias
 node_modules/
 backend/node_modules/
 frontend/node_modules/
 
+# Variaveis de ambiente reais
 .env
 *.env
+.env.*
 backend/.env
 frontend/.env
+!.env.example
+!backend/.env.example
+!frontend/.env.example
 
-.DS_Store
+# Builds e ficheiros gerados
 dist/
 build/
+frontend/dist/
+backend/dist/
+
+# Logs e sistema operativo
+*.log
+.DS_Store

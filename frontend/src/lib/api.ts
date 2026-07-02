@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "";
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
@@ -360,6 +360,7 @@ export const api = {
       body: JSON.stringify({}),
     }),
 
+  // Historico do cliente mostra os agendamentos do proprio utilizador e os seus estados.
   getCustomerHistory: () => request<Booking[]>("/api/agendamentos/me"),
   
   // services

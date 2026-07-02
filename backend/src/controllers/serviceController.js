@@ -4,7 +4,6 @@ import {
   validateServicePayload
 } from "../validators/serviceValidator.js";
 import {
-  createDevService,
   createProviderService,
   deleteProviderService,
   getProviderServices,
@@ -30,14 +29,6 @@ export async function create(req, res) {
   const payload = validateServicePayload(req.body);
   const explicitProviderId = req.body.id_prestador ? parsePositiveId(req.body.id_prestador, "id_prestador") : null;
   return res.status(201).json(await createProviderService(req.user, payload, explicitProviderId));
-}
-
-// CLEAN ARCHITECTURE: rota dev legada mantida.
-export async function createDev(req, res) {
-  const payload = validateServicePayload(req.body);
-  const id_prestador = parsePositiveId(req.body.id_prestador, "id_prestador");
-  const service = await createDevService({ ...payload, id_prestador });
-  return res.status(201).json(service);
 }
 
 // SUPABASE MIGRATION: detalhe com estatísticas.

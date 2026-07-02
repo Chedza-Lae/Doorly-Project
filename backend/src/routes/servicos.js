@@ -3,7 +3,6 @@ import { verifyToken } from "../middleware/authMiddleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   create,
-  createDev,
   details,
   list,
   listMine,
@@ -20,7 +19,6 @@ router.get("/", asyncHandler(list));
 router.get("/me", verifyToken, asyncHandler(listMine));
 router.post("/image", verifyToken, asyncHandler(uploadImage));
 router.post("/", verifyToken, asyncHandler(create));
-router.post("/dev", asyncHandler(createDev));
 router.get("/:id", asyncHandler(details));
 router.put("/:id", verifyToken, asyncHandler(update));
 router.patch("/:id", verifyToken, asyncHandler(patch));

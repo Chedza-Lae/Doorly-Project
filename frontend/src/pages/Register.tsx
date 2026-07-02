@@ -240,9 +240,12 @@ export default function Register() {
 
                   <span>
                     Aceitar os{" "}
-                    <span className="font-semibold text-[#1E3A8A]">
+                    <Link
+                      to="/terms"
+                      className="font-semibold text-[#1E3A8A] underline-offset-2 hover:text-[#3B82F6] hover:underline"
+                    >
                       Termos e Condições
-                    </span>
+                    </Link>
                   </span>
                 </label>
 
@@ -256,9 +259,12 @@ export default function Register() {
 
                   <span>
                     Aceitar a{" "}
-                    <span className="font-semibold text-[#1E3A8A]">
+                    <Link
+                      to="/privacy"
+                      className="font-semibold text-[#1E3A8A] underline-offset-2 hover:text-[#3B82F6] hover:underline"
+                    >
                       Política de Privacidade
-                    </span>
+                    </Link>
                   </span>
                 </label>
 

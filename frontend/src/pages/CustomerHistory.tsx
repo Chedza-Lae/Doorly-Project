@@ -69,9 +69,9 @@ export default function CustomerHistory() {
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <p className="mb-2 text-sm font-medium text-[#1E3A8A]">Histórico</p>
-          <h1 className="text-3xl font-bold text-[#0B1B46] md:text-4xl">Histórico de serviços</h1>
+          <h1 className="text-3xl font-bold text-[#0B1B46] md:text-4xl">Histórico de agendamentos</h1>
           <p className="mt-3 max-w-2xl text-gray-600">
-            Consulta os teus pedidos, agendamentos e estados numa vista simples.
+            Consulta os teus agendamentos e respetivos estados numa vista simples.
           </p>
         </div>
 

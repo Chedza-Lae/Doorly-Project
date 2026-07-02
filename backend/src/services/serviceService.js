@@ -81,16 +81,6 @@ export async function createProviderService(user, payload, explicitProviderId = 
   return findDetailedServiceById(created.id_servico);
 }
 
-// CLEAN ARCHITECTURE: modo dev mantido para compatibilidade.
-export async function createDevService(payload) {
-  const created = await withTransaction(async (client) => {
-    const service = await createService(payload, client);
-    await createStatisticsForService(service.id_servico, client);
-    return service;
-  });
-  return findDetailedServiceById(created.id_servico);
-}
-
 // CLEAN ARCHITECTURE: update completo com permissão.
 export async function uploadProviderServiceImage(user, payload) {
   if (user.tipo !== "prestador" && user.tipo !== "admin") {
