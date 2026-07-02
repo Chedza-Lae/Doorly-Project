@@ -12,6 +12,7 @@ import {
   MapPin,
   Phone,
   Save,
+  Trash2,
   User,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
@@ -178,8 +179,18 @@ export default function Profile() {
     setImagePreviewUrl(URL.createObjectURL(file));
   }
 
+  function handleRemoveImage() {
+    setErr(null);
+    setNotice(null);
+    setSelectedImage(null);
+    setImagePreviewUrl(null);
+    setForm((current) => ({ ...current, foto_perfil: null }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   const initial = profile?.nome?.slice(0, 1).toUpperCase() || "U";
   const profileImage = imagePreviewUrl || form.foto_perfil;
+  const canRemoveImage = Boolean(profileImage || selectedImage);
 
   return (
     <div className="min-h-screen bg-[#F3F4F6]">
@@ -286,14 +297,26 @@ export default function Profile() {
                       onChange={handleImageChange}
                       className="hidden"
                     />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                    >
-                      <Camera className="h-4 w-4" />
-                      Escolher imagem
-                    </button>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                      >
+                        <Camera className="h-4 w-4" />
+                        Escolher imagem
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        disabled={!canRemoveImage}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Remover imagem
+                      </button>
+                    </div>
                     {selectedImage && (
                       <p className="mt-2 truncate text-sm text-gray-500">{selectedImage.name}</p>
                     )}

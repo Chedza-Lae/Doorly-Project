@@ -122,6 +122,8 @@ export default function Navbar() {
           </div>
 
           <div className="hidden items-center justify-end gap-4 md:flex">
+            <ThemeSelector theme={theme} onThemeChange={setTheme} compact />
+
             {!isLogged ? (
               <>
                 <Link to="/login" className="px-4 py-2 text-[#1E3A8A] transition-colors hover:text-[#3B82F6]">
@@ -200,10 +202,6 @@ export default function Navbar() {
                         ))}
                     </div>
 
-                    <div className="border-t border-gray-100 p-3">
-                      <ThemeSelector theme={theme} onThemeChange={setTheme} />
-                    </div>
-
                     <div className="border-t border-gray-100 p-2">
                       <button
                         type="button"
@@ -221,7 +219,7 @@ export default function Navbar() {
             )}
           </div>
 
-          <div className="flex justify-end md:hidden">
+          <div className="col-start-3 flex justify-end md:hidden">
             <button
               type="button"
               onClick={() => {
@@ -256,6 +254,10 @@ export default function Navbar() {
               >
                 Sobre
               </Link>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <ThemeSelector theme={theme} onThemeChange={setTheme} />
             </div>
 
             {!isLogged ? (
@@ -311,10 +313,6 @@ export default function Navbar() {
                     ))}
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                  <ThemeSelector theme={theme} onThemeChange={setTheme} />
-                </div>
-
                 <button
                   type="button"
                   onClick={logout}
@@ -335,9 +333,11 @@ export default function Navbar() {
 function ThemeSelector({
   theme,
   onThemeChange,
+  compact = false,
 }: {
   theme: ThemeName;
   onThemeChange: (theme: ThemeName) => void;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const currentTheme = themeOptions.find((option) => option.value === theme) ?? themeOptions[0];
@@ -354,23 +354,27 @@ function ThemeSelector({
   }
 
   return (
-    <div>
+    <div className={compact ? "relative" : undefined}>
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-[#1E3A8A]"
+        className={
+          compact
+            ? "flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm transition-colors hover:bg-blue-50 hover:text-[#1E3A8A]"
+            : "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-[#1E3A8A]"
+        }
         aria-expanded={open}
         aria-haspopup="menu"
       >
         <Palette className="h-4 w-4 text-gray-500" />
-        <span className="font-medium">Tema</span>
+        <span className="font-medium">{compact ? currentTheme.label : "Tema"}</span>
         <span className="ml-auto inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700">
           <span
             className="h-3 w-3 rounded-full border border-gray-200"
             style={{ background: swatches[theme] }}
             aria-hidden="true"
           />
-          {currentTheme.label}
+          {!compact && currentTheme.label}
         </span>
         <ChevronDown
           className="h-4 w-4 text-gray-500 transition-transform"
@@ -379,7 +383,14 @@ function ThemeSelector({
       </button>
 
       {open && (
-        <div className="mt-2 rounded-xl border border-gray-100 bg-gray-50 p-1" role="menu">
+        <div
+          className={
+            compact
+              ? "absolute right-0 mt-2 w-48 rounded-xl border border-gray-100 bg-white p-1 shadow-lg"
+              : "mt-2 rounded-xl border border-gray-100 bg-gray-50 p-1"
+          }
+          role="menu"
+        >
           {themeOptions.map((option) => {
             const isActive = option.value === theme;
 
