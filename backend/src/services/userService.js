@@ -28,17 +28,17 @@ export async function updateMyProfile(userId, payload) {
   return updateProfile(userId, payload);
 }
 
-// CLEAN ARCHITECTURE: upload de foto de perfil e persistencia da URL publica.
+// CLEAN ARCHITECTURE: upload de foto de perfil e persistência da URL pública.
 export async function updateMyProfilePhoto(userId, payload) {
   const user = await findUserById(userId);
   if (!user) {
-    throw createHttpError(404, "Utilizador nao encontrado");
+    throw createHttpError(404, "Utilizador não encontrado");
   }
 
   const publicUrl = await uploadProfileImage(userId, payload);
   const updated = await updateProfilePhoto(userId, publicUrl);
   if (!updated) {
-    throw createHttpError(404, "Utilizador nao encontrado");
+    throw createHttpError(404, "Utilizador não encontrado");
   }
 
   return updated;

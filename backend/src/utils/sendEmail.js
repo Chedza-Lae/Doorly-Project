@@ -5,7 +5,7 @@ let transporter;
 function buildFrontendUrl(path = "/") {
   const baseUrl = `${process.env.FRONTEND_URL || ""}`.replace(/\/+$/, "");
   if (!baseUrl) {
-    throw new Error("FRONTEND_URL nao configurado");
+    throw new Error("FRONTEND_URL não configurado");
   }
 
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -14,7 +14,7 @@ function buildFrontendUrl(path = "/") {
 
 function getTransporter() {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error("EMAIL_USER ou EMAIL_PASS nao configurado");
+    throw new Error("EMAIL_USER ou EMAIL_PASS não configurado");
   }
 
   if (!transporter) {
@@ -57,7 +57,7 @@ function formatDate(value) {
 function scheduleRows(schedule) {
   return `
     <tr>
-      <td style="padding:8px 0;color:#64748b;">Servico</td>
+      <td style="padding:8px 0;color:#64748b;">Serviço</td>
       <td style="padding:8px 0;text-align:right;font-weight:600;color:#0f172a;">${escapeHtml(schedule.nome_servico || schedule.titulo_servico)}</td>
     </tr>
     <tr>
@@ -65,7 +65,7 @@ function scheduleRows(schedule) {
       <td style="padding:8px 0;text-align:right;font-weight:600;color:#0f172a;">${escapeHtml(formatDate(schedule.data_agendada))}</td>
     </tr>
     <tr>
-      <td style="padding:8px 0;color:#64748b;">Horario</td>
+      <td style="padding:8px 0;color:#64748b;">Horário</td>
       <td style="padding:8px 0;text-align:right;font-weight:600;color:#0f172a;">${escapeHtml(schedule.hora_inicio)} - ${escapeHtml(schedule.hora_fim)}</td>
     </tr>
   `;
@@ -131,12 +131,12 @@ async function sendSafely(context, callback) {
 }
 
 export async function sendResetEmail(to, link) {
-  await sendSafely("recuperacao de password", async () => {
+  await sendSafely("recuperação de password", async () => {
     await sendEmail({
       to,
-      subject: "Recuperacão de password - Doorly",
+      subject: "Recuperação de password - Doorly",
       html: baseTemplate({
-        title: "Recuperacão de password",
+        title: "Recuperação de password",
         intro: "Recebemos um pedido para redefinir a tua password. Usa o botão abaixo para escolher uma nova password.",
         body: `<p style="margin:0 0 18px;font-size:14px;line-height:1.6;color:#475569;">Este link expira em 1 hora. Se não fizeste este pedido, podes ignorar este email.</p>`,
         actionLabel: "Redefinir password",
@@ -206,7 +206,7 @@ export async function sendScheduleStatusEmailToClient(schedule) {
     const statusLabels = {
       aceite: "aceite",
       rejeitado: "rejeitado",
-      concluido: "concluido",
+      concluido: "concluído",
       cancelado: "cancelado"
     };
     const status = statusLabels[schedule.estado] || schedule.estado;

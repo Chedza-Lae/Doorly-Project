@@ -164,14 +164,14 @@ export async function updateScheduleStatus(scheduleId, estado) {
     `UPDATE agendamentos
      SET estado = $1,
          estado_pagamento = CASE
-           WHEN $1 = 'aceite' AND COALESCE(estado_pagamento, 'aguarda_pagamento') <> 'pago'
+           WHEN $3::text = 'aceite' AND COALESCE(estado_pagamento, 'aguarda_pagamento') <> 'pago'
              THEN 'aguarda_pagamento'
            ELSE COALESCE(estado_pagamento, 'aguarda_pagamento')
          END,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $2
      RETURNING id`,
-    [estado, scheduleId]
+    [estado, scheduleId, estado]
   );
 
   if (!result.rows[0]) return null;
@@ -185,11 +185,11 @@ export async function updateSchedulePayment(scheduleId, { estado_pagamento, paga
     `UPDATE agendamentos
      SET estado_pagamento = $1,
          pagamento_referencia = $2,
-         pago_em = CASE WHEN $1 = 'pago' THEN CURRENT_TIMESTAMP ELSE NULL END,
+         pago_em = CASE WHEN $4::text = 'pago' THEN CURRENT_TIMESTAMP ELSE NULL END,
          updated_at = CURRENT_TIMESTAMP
      WHERE id = $3
      RETURNING id`,
-    [estado_pagamento, pagamento_referencia, scheduleId]
+    [estado_pagamento, pagamento_referencia, scheduleId, estado_pagamento]
   );
 
   if (!result.rows[0]) return null;

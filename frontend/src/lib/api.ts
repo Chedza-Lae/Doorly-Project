@@ -360,7 +360,7 @@ export const api = {
       body: JSON.stringify({}),
     }),
 
-  // Historico do cliente mostra os agendamentos do proprio utilizador e os seus estados.
+  // Histórico do cliente mostra os agendamentos do próprio utilizador e os seus estados.
   getCustomerHistory: () => request<Booking[]>("/api/agendamentos/me"),
   
   // services

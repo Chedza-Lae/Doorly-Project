@@ -1,6 +1,6 @@
 import { HttpError } from "../utils/httpError.js";
 
-// CLEAN ARCHITECTURE: middleware global com formato de erro unico em toda a API.
+// CLEAN ARCHITECTURE: middleware global com formato de erro único em toda a API.
 export function errorHandler(err, req, res, next) {
   if (res.headersSent) {
     return next(err);

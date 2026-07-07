@@ -99,7 +99,7 @@ export async function forgotPassword({ email }) {
     const resetLink = buildFrontendUrl(`/reset-password/${token}`);
     await sendResetEmail(user.email, resetLink);
   } catch (error) {
-    console.error("[email] Falha ao preparar email de recuperacao:", error);
+    console.error("[email] Falha ao preparar email de recuperação:", error);
   }
 }
 

@@ -28,19 +28,19 @@ function assertCanManageService(service, user) {
 
 function assertCanDeleteProviderService(service, user) {
   if (!service) {
-    throw createHttpError(404, "Servico nao encontrado");
+    throw createHttpError(404, "Serviço não encontrado");
   }
 
   if (user.tipo !== "prestador" && user.tipo !== "admin") {
-    throw createHttpError(403, "Apenas prestadores podem eliminar servicos nesta rota");
+    throw createHttpError(403, "Apenas prestadores podem eliminar serviços nesta rota");
   }
 
   if (user.tipo !== "admin" && Number(service.id_prestador) !== Number(user.id)) {
-    throw createHttpError(403, "Este servico nao pertence ao prestador autenticado");
+    throw createHttpError(403, "Este serviço não pertence ao prestador autenticado");
   }
 }
 
-// CLEAN ARCHITECTURE: lista publica de serviços.
+// CLEAN ARCHITECTURE: lista pública de serviços.
 export function getPublicServices(query) {
   return listPublicServices(query);
 }
@@ -84,7 +84,7 @@ export async function createProviderService(user, payload, explicitProviderId = 
 // CLEAN ARCHITECTURE: update completo com permissão.
 export async function uploadProviderServiceImage(user, payload) {
   if (user.tipo !== "prestador" && user.tipo !== "admin") {
-    throw createHttpError(403, "Apenas prestadores podem enviar imagens de servicos");
+    throw createHttpError(403, "Apenas prestadores podem enviar imagens de serviços");
   }
 
   const url = await uploadServiceImage(user.id, payload);
@@ -115,7 +115,7 @@ export async function deleteProviderService(id, user) {
   await withTransaction(async (client) => {
     const rowCount = await deleteServiceCascade(id, client);
     if (rowCount === 0) {
-      throw createHttpError(404, "Servico nao encontrado");
+      throw createHttpError(404, "Serviço não encontrado");
     }
   });
 }

@@ -26,6 +26,14 @@ const statusStyles: Record<BookingStatus, string> = {
   cancelado: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
+const statusLabels: Record<BookingStatus, string> = {
+  pendente: "Pendente",
+  aceite: "Aceite",
+  rejeitado: "Rejeitado",
+  concluido: "Concluído",
+  cancelado: "Cancelado",
+};
+
 const paymentLabels: Record<PaymentStatus, string> = {
   aguarda_pagamento: "Aguarda pagamento",
   pago: "Pago",
@@ -268,12 +276,12 @@ function BookingCard({
             onChange={(event) => onStatusChange(booking, event.target.value as BookingStatus)}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-transparent focus:ring-2 focus:ring-[#3B82F6] disabled:opacity-60"
           >
-            <option value={booking.estado}>{booking.estado}</option>
+            <option value={booking.estado}>{statusLabels[booking.estado]}</option>
             {statusOptions
               .filter((estado) => estado !== booking.estado)
               .map((estado) => (
                 <option key={estado} value={estado}>
-                  {estado}
+                  {statusLabels[estado]}
                 </option>
               ))}
           </select>
@@ -285,8 +293,8 @@ function BookingCard({
 
 function Badge({ estado }: { estado: BookingStatus }) {
   return (
-    <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${statusStyles[estado]}`}>
-      {estado}
+    <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles[estado]}`}>
+      {statusLabels[estado]}
     </span>
   );
 }

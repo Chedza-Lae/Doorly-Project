@@ -685,7 +685,7 @@ function QuoteCard({
           className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#3B82F6]"
         >
           <option value="novo">Novo</option>
-          <option value="em_analise">Em analise</option>
+          <option value="em_analise">Em análise</option>
           <option value="respondido">Respondido</option>
           <option value="fechado">Fechado</option>
         </select>

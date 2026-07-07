@@ -1,26 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-
-export type ThemeName = "light" | "dark" | "midnight" | "premium";
-
-type ThemeContextValue = {
-  theme: ThemeName;
-  setTheme: (theme: ThemeName) => void;
-};
-
-export const THEME_STORAGE_KEY = "doorly_theme";
-
-export const themeOptions: { value: ThemeName; label: string }[] = [
-  { value: "light", label: "Claro" },
-  { value: "dark", label: "Escuro" },
-  { value: "midnight", label: "Midnight" },
-  { value: "premium", label: "Premium" },
-];
-
-const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-
-function isThemeName(value: string | null): value is ThemeName {
-  return themeOptions.some((option) => option.value === value);
-}
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { isThemeName, THEME_STORAGE_KEY, ThemeContext, type ThemeName } from "./theme-context";
 
 function getStoredTheme(): ThemeName {
   if (typeof window === "undefined") return "light";
@@ -41,14 +20,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({ theme, setTheme }), [theme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-
-  if (!context) {
-    throw new Error("useTheme must be used inside ThemeProvider");
-  }
-
-  return context;
 }

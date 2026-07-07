@@ -14,7 +14,7 @@ import {
   uploadProviderServiceImage
 } from "../services/serviceService.js";
 
-// CLEAN ARCHITECTURE: lista publica.
+// CLEAN ARCHITECTURE: lista pública.
 export async function list(req, res) {
   return res.json(await getPublicServices({ q: req.query.q }));
 }

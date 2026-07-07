@@ -19,7 +19,7 @@ const detailedGroup = `
   GROUP BY s.id_servico, u.nome, u.email, e.visualizacoes, e.pedidos
 `;
 
-// SUPABASE MIGRATION: lista publica com ILIKE e boolean true.
+// SUPABASE MIGRATION: lista pública com ILIKE e boolean true.
 export async function listPublicServices({ q } = {}) {
   const params = [];
   let where = "WHERE s.ativo = true";

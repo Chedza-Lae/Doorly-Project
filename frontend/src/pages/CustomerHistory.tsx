@@ -14,6 +14,14 @@ const statusStyles: Record<BookingStatus, string> = {
   cancelado: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
+const statusLabels: Record<BookingStatus, string> = {
+  pendente: "Pendente",
+  aceite: "Aceite",
+  rejeitado: "Rejeitado",
+  concluido: "Concluído",
+  cancelado: "Cancelado",
+};
+
 export default function CustomerHistory() {
   const navigate = useNavigate();
   const user = useMemo(() => getUser(), []);
@@ -146,8 +154,8 @@ function HistoryRow({ item }: { item: Booking }) {
 
 function Badge({ estado }: { estado: BookingStatus }) {
   return (
-    <span className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${statusStyles[estado]}`}>
-      {estado}
+    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusStyles[estado]}`}>
+      {statusLabels[estado]}
     </span>
   );
 }

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { clearToken, getUser } from "../lib/api";
-import { themeOptions, useTheme, type ThemeName } from "../theme";
+import { themeOptions, useTheme, type ThemeName } from "../theme-context";
 
 type StoredUser = {
   id?: number;
